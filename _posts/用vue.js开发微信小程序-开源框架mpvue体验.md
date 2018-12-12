@@ -1,3 +1,17 @@
+---
+layout:     post
+title:      用vue开发微信小程序-开源框架mpvue体验
+subtitle:   使用mpvue开发微信小程序能使开发者得到vue.js的开发体验
+date:       2018-12-12
+author:     BY
+header-img: img/post-bg-ios9-web.jpg
+catalog: true
+tags:
+    - vue
+    - mpvue
+    - 微信小程序
+---
+
 ## 背景
 
 美团点评在18年3月开源了基于vue.js开发微信小程序的前端框架-mpvue。mpvue 修改了 Vue.js 的 runtime 和 compiler 实现，使其可以运行在小程序环境中，从而为小程序开发引入了整套 Vue.js 开发体验。使用mpvue开发微信小程序能使开发者得到vue.js的开发体验，同时一份代码可以复用到H5。
