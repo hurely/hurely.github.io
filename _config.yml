@@ -19,9 +19,9 @@ sidebar-avatar: /img/about-BY-gentle.jpg      # use absolute URL, seeing it's us
 # SNS settings
 RSS: false
 # weibo_username:     hurely
-zhihu_username:     hurely
+#zhihu_username:     hurely
 github_username:    hurely
-facebook_username:  baiying.qiu.7
+#facebook_username:  baiying.qiu.7
 jianshu_username:   12f753ff40af
 #twitter_username:   hurely
 
@@ -43,7 +43,6 @@ gems: [jekyll-paginate]
 
 
 
-
 # Markdown settings
 # replace redcarpet to kramdown,
 # although redcarpet can auto highlight code, the lack of header-id make the catalog impossible, so I switch to kramdown
@@ -62,8 +61,8 @@ kramdown:
 # Gitalk
 gitalk:
   enable: true    #是否开启Gitalk评论
-  clientID: f2c84e7629bb1446c1a4                            #生成的clientID
-  clientSecret: ca6d6139d1e1b8c43f8b2e19492ddcac8b322d0d    #生成的clientSecret
+  clientID: 9bb8b07ea013fa669dd3                            #生成的clientID
+  clientSecret: 5a79044215194dd0839374aff53217c43e16211a    #生成的clientSecret
   repo: hurely.github.io    #仓库名称
   owner: hurely    #github用户名
   admin: hurely
@@ -74,14 +73,11 @@ gitalk:
 
 # Analytics settings
 # Baidu Analytics
-ba_track_id: b50bf2b12b5338a1845e33832976fd68
+#ba_track_id: b50bf2b12b5338a1845e33832976fd68
 
 # Google Analytics
-ga_track_id: 'UA-90855596-1'            # Format: UA-xxxxxx-xx
-ga_domain: auto               # 默认的是 auto, 这里我是自定义了的域名，你如果没有自己的域名，需要改成auto
-
-
-
+#ga_track_id: 'UA-90855596-1'            # Format: UA-xxxxxx-xx
+#ga_domain: auto               # 默认的是 auto, 这里我是自定义了的域名，你如果没有自己的域名，需要改成auto
 
 
 # Featured Tags
@@ -107,5 +103,8 @@ friends: [
     },{
         title: "爱尚吉他",
         href: "http://23jt.net"
+    },{
+        title: "曦语喵",
+        href: "https://ixiyu.me/"
     }
 ]
