@@ -1,10 +1,10 @@
 ---
 layout:     post
-title:      基于nuxt和iview搭建OM后台管理系统实践(5)-高德地图地块气象数据展示组件的封装
+title:      基于nuxt和iview搭建OM后台管理系统实践(4)-七牛上传组件的封装
 subtitle:   运用nuxt的自动生成路由和生成静态html文件特性提高开发效率
-date:       2018-07-10
+date:       2018-06-19
 author:     KUNG
-header-img: http://upload-images.jianshu.io/upload_images/9476967-bd7dd39c7ca52377.png
+header-img: https://kung-1252408270.cos.ap-chengdu.myqcloud.com/markdown/20181221111739.png
 catalog: true
 tags:
     - iview

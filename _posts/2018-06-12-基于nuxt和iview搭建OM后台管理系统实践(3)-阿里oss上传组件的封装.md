@@ -1,3 +1,17 @@
+---
+layout:     post
+title:      基于nuxt和iview搭建OM后台管理系统实践(3)-阿里oss上传组件的封装
+subtitle:   运用nuxt的自动生成路由和生成静态html文件特性提高开发效率
+date:       2018-06-12
+author:     KUNG
+header-img: https://kung-1252408270.cos.ap-chengdu.myqcloud.com/markdown/20181221111739.png
+catalog: true
+tags:
+    - iview
+    - vue
+    - nuxt
+---
+
 ![封面图，基于创客贴在线制作](http://upload-images.jianshu.io/upload_images/9476967-24309af373f95b1d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 # 目录结构

@@ -1,10 +1,10 @@
 ---
 layout:     post
-title:      基于nuxt和iview搭建OM后台管理系统实践-项目简要介绍
+title:      基于nuxt和iview搭建OM后台管理系统实践(1)-项目简要介绍
 subtitle:   运用nuxt的自动生成路由和生成静态html文件特性提高开发效率
 date:       2018-06-03
 author:     KUNG
-header-img: http://upload-images.jianshu.io/upload_images/9476967-909b2e9c3f6a6377.png
+header-img: https://kung-1252408270.cos.ap-chengdu.myqcloud.com/markdown/20181221111739.png
 catalog: true
 tags:
     - iview
