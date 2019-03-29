@@ -15,6 +15,8 @@ tags:
 
 ant design pro阿里巴巴是基于react和ant design构建的一套中后台管理控制台的脚手架。 
 
+![image](https://kung-1252408270.cos.ap-chengdu.myqcloud.com/markdown/20190329172410.png)
+
 
 ### ant design pro具有如下几个特性：
 
