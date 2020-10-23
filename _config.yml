@@ -5,7 +5,7 @@ header-img: img/guitar.jpg
 email: daikun19900806@gmail.com
 description: "Show your code！"
 keyword: "kung, kung Blog, 戴琨的博客, 前端, 戴琨, vue, react, weex"
-url: "http://hurely.github.io"          # your host, for absolute URL
+url: "http://blog.idaikun.cn"          # your host, for absolute URL
 baseurl: ""      # for example, '/blog' if your blog hosted on 'host/blog'
 github_repo: "https://github.com/hurely/hurely.github.io.git" # you code repository
 
