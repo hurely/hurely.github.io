@@ -2227,7 +2227,10 @@ footer.main-footer .footer-text {
 
 footer.main-footer .go-up {
     float: right;
-    margin-bottom: 20px
+    margin-bottom: 20px;
+    position: fixed;
+    right: 10px;
+    bottom:10px;
 }
 
 footer.main-footer .go-up a {
