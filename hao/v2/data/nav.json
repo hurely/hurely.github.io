@@ -3,6 +3,7 @@
         "title": "常用推荐",
         "class": "linecons-star",
         "child": [],
+        "expanded":false,
         "list": [
             {
                 "title": "Dribbble",
@@ -58,6 +59,7 @@
         "title": "社区资讯",
         "class": "linecons-doc",
         "child": [],
+        "expanded":false,
         "list": [
             {
                 "title": "雷锋网",
@@ -100,6 +102,7 @@
     {
         "title": "灵感采集",
         "class": "linecons-lightbulb",
+        "expanded":false,
         "child": [
             {
                 "title": "发现产品",
@@ -247,6 +250,7 @@
     {
         "title": "素材资源",
         "class": "linecons-thumbs-up",
+        "expanded":false,
         "child": [
             {
                 "title": "图标素材",
@@ -593,6 +597,7 @@
     {
         "title": "常用工具",
         "class": "linecons-diamond",
+        "expanded":false,
         "child": [
             {
                 "title": "在线工具",
@@ -633,6 +638,7 @@
     {
         "title": "学习教程",
         "class": "linecons-pencil",
+        "expanded":false,
         "child": [
             {
                 "title": "视频教程",

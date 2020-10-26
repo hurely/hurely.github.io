@@ -48,7 +48,9 @@
                     </div>
                 </header>
                 <ul id="main-menu" class="main-menu" v-if="navList.length > 0">
-                    <li v-for="(item,index) in navList" :class="[item.child.length > 0 ? 'has-sub' : '']">
+                    <li v-for="(item,index) in navList" 
+                    @click="navClick(item,index)"
+                    :class="[item.child.length > 0 ? 'has-sub' : '',item.expanded ? 'expanded':'']">
                         <a :href="'#'+item.title" class="smooth" v-if="item.child.length == 0">
                             <i :class="[item.class]"></i>
                             <span class="title">{{item.title}}</span>
@@ -187,6 +189,19 @@
                 goTo(item) {
                     window.open(item.url, '_blank')
                 },
+                navClick(item,index){
+                    var that = this,arr = []
+                    for (var i = 0; i < that.navList.length; i++) {
+                        var el = that.navList[i]
+                        el.expanded = false
+                    }
+                    if(item.child.length > 0){
+                        item.expanded = true
+                    }else{
+                        item.expanded = false
+                    }
+                    that.navList[index] = item
+                }
             },
         })
     </script>
@@ -223,7 +238,6 @@
             });
             $("a.smooth").click(function (ev) {
                 ev.preventDefault();
-
                 public_vars.$mainMenu.add(public_vars.$sidebarProfile).toggleClass('mobile-is-visible');
                 ps_destroy();
                 $("html, body").animate({
@@ -233,30 +247,34 @@
                     easing: "swing"
                 });
             });
-            return false;
-        });
-
-        var href = "";
-        var pos = 0;
-        $("a.smooth").click(function (e) {
-            $("#main-menu li").each(function () {
-                $(this).removeClass("active");
+            var href = "";
+            var pos = 0;
+            $("a.smooth").click(function (e) {
+                $("#main-menu li").each(function () {
+                    $(this).removeClass("active");
+                });
+                $(this).parent("li").addClass("active");
+                e.preventDefault();
+                href = $(this).attr("href");
+                pos = $(href).position().top - 30;
             });
-            $(this).parent("li").addClass("active");
-            e.preventDefault();
-            href = $(this).attr("href");
-            pos = $(href).position().top - 30;
+            return false;
         });
     </script>
     <!-- Bottom Scripts -->
     <script src="assets/js/bootstrap.min.js"></script>
     <script src="assets/js/TweenMax.min.js"></script>
     <script src="assets/js/resizeable.js"></script>
-    <script src="assets/js/joinable.js"></script>
-    <script src="assets/js/xenon-api.js"></script>
+    <!-- <script src="assets/js/joinable.js"></script> -->
+    <!-- <script src="assets/js/xenon-api.js"></script> -->
     <script src="assets/js/xenon-toggles.js"></script>
     <!-- JavaScripts initializations and stuff -->
     <script src="assets/js/xenon-custom.js"></script>
+    <style>
+        li.expanded ul{
+            display: block!important;
+        }
+    </style>
 </body>
 
 
