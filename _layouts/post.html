@@ -8,583 +8,167 @@ layout: default
 
 <!-- Post Header -->
 <style type="text/css">
-    header.intro-header{
-        position: relative;
-        background-image: url('{% if page.header-img %}{{ page.header-img }}{% else %}{{ site.header-img }}{% endif %}')
-    }
+  header.intro-header{
+    position: relative;
+    background-image: url('{% if page.header-img %}{{ page.header-img }}{% else %}{{ site.header-img }}{% endif %}')
+  }
 
-    {% if page.header-mask %}
-    header.intro-header .header-mask{
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        background: rgba(0,0,0, {{ page.header-mask }});
-    }
-    {% endif %}
-</style>
-<style>
-    /*自定义样式，实时生效*/
-
-    /*自定义样式，实时生效*/
-
-    /* 全局属性
-    * 页边距 padding:30px;
-    * 全文字体 font-family:optima-Regular;
-    * 英文换行 word-break:break-all;
-    color:#2b2b2b;
-    */
-    .post-container {
-        line-height: 1.25;
-        color: #2b2b2b;
-        font-family: Optima-Regular, Optima, PingFangTC-Light, PingFangSC-light, PingFangTC-light;
-        letter-spacing: 2px;
-        background-image: linear-gradient(90deg, rgba(50, 0, 0, 0.04) 3%, rgba(0, 0, 0, 0) 3%), linear-gradient(360deg, rgba(50, 0, 0, 0.04) 3%, rgba(0, 0, 0, 0) 3%);
-        background-size: 20px 20px;
-        background-position: center center;
-    }
-
-    /* 段落，下方未标注标签参数均同此处
-    * 上边距 margin-top:5px;
-    * 下边距 margin-bottom:5px;
-    * 行高 line-height:26px;
-    * 词间距 word-spacing:3px;
-    * 字间距 letter-spacing:3px;
-    * 对齐 text-align:left;
-    * 颜色 color:#3e3e3e;
-    * 字体大小 font-size:16px;
-    * 首行缩进 text-indent:2em;
-    */
-    .post-container p {
-        color: #2b2b2b;
-        margin: 10px 0px;
-        letter-spacing: 2px;
-        font-size: 14px;
-        word-spacing: 2px;
-    }
-
-    /* 一级标题 */
-    .post-container h1 {
-        font-size: 25px;
-    }
-
-    /* 一级标题内容 */
-    .post-container h1 span {
-        display: inline-block;
-        font-weight: bold;
-        color: #40B8FA;
-    }
-
-    /* 一级标题修饰 请参考有实例的主题 */
-    .post-container h1:after {}
-
-    /* 二级标题 */
-    .post-container h2 {
-        display:block;
-        border-bottom: 4px solid #40B8FA;
-    }
-
-    /* 二级标题内容 */
-    .post-container h2 .content {
-        display: flex;
-        color: #40B8FA;
-        font-size: 20px;
-        margin-left: 25px;
-    }
-
-    /* 二级标题前缀 */
-    .post-container h2 .prefix {
-        display: flex;
-        width: 20px;
-        height: 20px;
-        background-size: 20px 20px;
-        background-image:url(https://my-wechat.mdnice.com/fullstack-1.png);
-        margin-bottom: -22px;
-    }
-
-    /* 二级标题后缀 */
-    .post-container h2 .suffix {
-        display: flex;
-        box-sizing: border-box;
-        width: 200px;
-        height: 10px;
-        border-top-left-radius: 20px;
-        background: RGBA(64, 184, 250, .5);
-        color: rgb(255, 255, 255);
-        font-size: 16px;
-        letter-spacing: 0.544px;
-        justify-content: flex-end;
-        box-sizing: border-box !important;
-        overflow-wrap: break-word !important;
-        float: right;
-        margin-top: -10px;
-    }
-
-    /* 三级标题 */
-    .post-container h3 {
-        font-size: 17px;
-        font-weight: bold;
-        text-align: center;
-        position:relative;
-        margin-top: 20px;
-        margin-bottom: 20px;
-    }
-
-    /* 三级标题内容 */
-    .post-container h3 .content {
-        border-bottom: 2px solid RGBA(79, 177, 249, .65);
-        color: #2b2b2b;
-        padding-bottom:2px
-    }
-
-    .post-container h3 .content:before{
-        content:'';
-        width:30px;
-        height:30px;
-        display:block;
-        background-image:url(https://my-wechat.mdnice.com/fullstack-2.png);
-        background-position:center;
-        background-size:30px;
-        margin:auto;
-        opacity:1;
-        background-repeat:no-repeat;
-        margin-bottom:-8px;
-    }
-
-    /* 三级标题修饰 请参考有实例的主题 */
-    .post-container h3:after {}
-
-    .post-container h4 .content {
-        height:16px;
-        line-height:16px;
-        font-size: 16px;
-    }
-
-    .post-container h4 .content:before{
-        content:'';
-        background-image:url(https://my-wechat.mdnice.com/fullstack-3.png);
-        display:inline-block;
-        width:16px;
-        height:16px;
-        background-size:100% ;
-        background-position:left bottom;
-        background-repeat:no-repeat;
-        width: 16px;
-        height: 15px;
-        line-height:15px;
-        margin-right:6px;
-        margin-bottom:-2px;
-    }
-
-    /* 无序列表整体样式
-    * list-style-type: square|circle|disc;
-    */
-    .post-container ul {
-        font-size: 15px; /*神奇逻辑，必须比li section的字体大才会在二级中生效*/
-        color: #595959;
-        list-style-type: circle;
-    }
-
-
-    /* 有序列表整体样式
-    * list-style-type: upper-roman|lower-greek|lower-alpha;
-    */
-    .post-container ol {
-        font-size: 15px;
-        color: #595959;
-    }
-
-    /* 列表内容，不要设置li
-    */
-    .post-container li section {
-        font-size: 14px;
-        font-weight: normal;
-        color: #595959;
-    }
-
-    /* 引用
-    * 左边缘颜色 border-left-color:black;
-    * 背景色 background:gray;
-    */
-    .post-container .multiquote-1::before {
-        content: "❝";
-        color: RGBA(64, 184, 250, .5);
-        font-size: 34px;
-        line-height: 1;
-        font-weight: 700;
-    }
-
-    .post-container .multiquote-1 {
-        text-size-adjust: 100%;
-        line-height: 1.55em;
-        font-weight: 400;
-        border-radius: 6px;
-        color: #595959;
-        font-style: normal;
-        text-align: left;
-        box-sizing: inherit;
-        border-left: none;
-        border: 1px solid RGBA(64, 184, 250, .4);
-        background: RGBA(64, 184, 250, .1);
-
-    }
-
-    .post-container .multiquote-1 p {
-        color: #595959;
-    }
-
-    .post-container .multiquote-1::after {
-        content: "❞";
-        float: right;
-        color: RGBA(64, 184, 250, .5);
-    }
-
-    /* 链接
-    * border-bottom: 1px solid #009688;
-    */
-    .post-container a {
-        color: #40B8FA;
-        font-weight: normal;
-        border-bottom: 1px solid #3BAAFA;
-    }
-
-    .post-container strong::before {
-        content: '「';
-    }
-
-    /* 加粗 */
-    .post-container strong {
-        color: #3594F7;
-        font-weight: bold;
-    }
-
-    .post-container strong::after {
-        content: '」';
-    }
-
-    /* 斜体 */
-    .post-container em {
-        font-style: normal;
-        color: #3594F7;
-        font-weight:bold;
-    }
-
-    /* 加粗斜体 */
-    .post-container em strong {
-        color: #3594F7;
-    }
-
-    /* 删除线 */
-    .post-container del {
-        color: #3594F7;
-    }
-
-    /* 分隔线
-    * 粗细、样式和颜色
-    * border-top:1px solid #3e3e3e;
-    */
-    .post-container hr {
-        height: 1px;
-        padding: 0;
-        border: none;
-        border-top: 2px solid #3BAAFA;
-    }
-
-    /* 图片
-    * 宽度 width:80%;
-    * 居中 margin:0 auto;
-    * 居左 margin:0 0;
-    */
-    .post-container img {
-        border-radius: 6px;
-        display: block;
-        margin: 20px auto;
-        object-fit: contain;
-        box-shadow:2px 4px 7px #999;
-    }
-
-    /* 图片描述文字 */
-    .post-container figcaption {
-        display: block;
-        font-size: 13px;
-        color: #2b2b2b;
-    }
-
-    .post-container figcaption:before{
-        content:'';
-        background-image:url(https://img.alicdn.com/tfs/TB1Yycwyrj1gK0jSZFuXXcrHpXa-32-32.png);
-        display:inline-block;
-        width:18px;
-        height:18px;
-        background-size:18px;
-        background-repeat:no-repeat;
-        background-position:center;
-        margin-right:5px;
-        margin-bottom:-5px;
-    }
-
-    /* 行内代码 */
-    .post-container p code,
-    .post-container li code {
-        color: #3594F7;
-        background: RGBA(59, 170, 250, .1);
-        padding:0 2px;
-        border-radius:2px;
-        height:21px;
-        line-height:22px;
-    }
-
-    /* 非微信代码块
-    * 代码块不换行 display:-webkit-box !important;
-    * 代码块换行 display:block;
-    */
-    .post-container .code-snippet__fix {
-        background: #f7f7f7;
-        border-radius: 2px;
-    }
-
-    .post-container pre code {
-        letter-spacing: 0px;
-    }
-
-    /*
-    * 表格内的单元格
-    * 字体大小 font-size: 16px;
-    * 边框 border: 1px solid #ccc;
-    * 内边距 padding: 5px 10px;
-    */
-    .post-container table tr th,
-    .post-container table tr td {
-        font-size: 14px;
-        color: #595959;
-    }
-
-    .post-container .footnotes {
-        background: #F6EEFF;
-        padding: 20px 20px 20px 20px;
-        font-size: 14px;
-        border: 0.8px solid #DEC6FB;
-        border-radius: 6px;
-        border: 1px solid #DEC6FB;
-    }
-
-    /* 脚注文字 */
-    .post-container .footnote-word {
-        font-weight: normal;
-        color: #595959;
-    }
-
-    /* 脚注上标 */
-    .post-container .footnote-ref {
-        font-weight: normal;
-        color: #595959;
-    }
-
-    /*脚注链接样式*/
-    .post-container .footnote-item em {
-        font-size: 14px;
-        color: #595959;
-        display: block;
-    }
-
-    .post-container .footnotes{
-        background: RGBA(53, 148, 247, .4);
-        padding: 20px 20px 20px 20px;
-        font-size: 14px;
-        border-radius: 6px;
-        border: 1px solid RGBA(53, 148, 247, 1);
-    }
-
-    /* "参考资料"四个字
-    * 内容 content: "参考资料";
-    */
-    .post-container .footnotes-sep:before {
-        content: 'Reference';
-        color: #595959;
-        letter-spacing: 1px;
-        border-bottom: 2px solid RGBA(64, 184, 250, 1);
-        display: inline;
-        background: linear-gradient(white 60%, RGBA(64, 184, 250, .4) 40%);
-        font-size: 20px;
-    }
-
-    /* 参考资料编号 */
-    .post-container .footnote-num {}
-
-    /* 参考资料文字 */
-    .post-container .footnote-item p {
-        color: #595959;
-        font-weight: bold;
-    }
-
-    /* 参考资料解释 */
-    .post-container .footnote-item p em {
-        font-weight: normal;
-    }
-
-    /* 行间公式
-    * 最大宽度 max-width: 300% !important;
-    */
-    .post-container .block-equation svg {}
-
-    /* 行内公式
-    */
-    .post-container .inline-equation svg {}
-
-    /* 滑动图片
-     */
-    .post-container .imageflow-img {
-        display: inline-block;
-        width:100%;
-        margin-bottom: 0;
-    }
+  {% if page.header-mask %}
+  header.intro-header .header-mask{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+  background: rgba(0,0,0, {{ page.header-mask }});
+  }
+  {% endif %}
 </style>
 <header class="intro-header" >
-    <div class="header-mask"></div>
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
-                <div class="post-heading">
-                    <div class="tags">
-                        {% for tag in page.tags %}
-                        <a class="tag" href="{{ site.baseurl }}/tags/#{{ tag }}" title="{{ tag }}">{{ tag }}</a>
-                        {% endfor %}
-                    </div>
-                    <h1>{{ page.title }}</h1>
-                    {% comment %}
-                        always create a h2 for keeping the margin , Hux
-                    {% endcomment %}
-                    {% comment %} if page.subtitle {% endcomment %}
-                    <h2 class="subheading">{{ page.subtitle }}</h2>
-                    {% comment %} endif {% endcomment %}
-                    <span class="meta">Posted by {% if page.author %}{{ page.author }}{% else %}{{ site.title }}{% endif %} on {{ page.date | date: "%B %-d, %Y" }}</span>
-                </div>
-            </div>
+  <div class="header-mask"></div>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+        <div class="post-heading">
+          <div class="tags">
+            {% for tag in page.tags %}
+            <a class="tag" href="{{ site.baseurl }}/tags/#{{ tag }}" title="{{ tag }}">{{ tag }}</a>
+            {% endfor %}
+          </div>
+          <h1>{{ page.title }}</h1>
+          {% comment %}
+          always create a h2 for keeping the margin , Hux
+          {% endcomment %}
+          {% comment %} if page.subtitle {% endcomment %}
+          <h2 class="subheading">{{ page.subtitle }}</h2>
+          {% comment %} endif {% endcomment %}
+          <span class="meta">Posted by {% if page.author %}{{ page.author }}{% else %}{{ site.title }}{% endif %} on {{ page.date | date: "%B %-d, %Y" }}</span>
         </div>
+      </div>
     </div>
+  </div>
 </header>
 
 <!-- Post Content -->
 <article>
-    <div class="container">
-        <div class="row">
+  <div class="container">
+    <div class="row">
 
-    <!-- Post Container -->
-            <div class="
+      <!-- Post Container -->
+      <div class="
                 col-lg-8 col-lg-offset-2
                 col-md-10 col-md-offset-1
                 post-container">
 
-				{{ content }}
+        {{ content }}
 
-                <hr style="visibility: hidden;">
+        <hr style="visibility: hidden;">
 
-                <ul class="pager">
-                    {% if page.previous.url %}
-                    <li class="previous">
-                        <a href="{{ page.previous.url | prepend: site.baseurl | replace: '//', '/' }}" data-toggle="tooltip" data-placement="top" title="{{page.previous.title}}">
-                        Previous<br>
-                        <span>{{page.previous.title}}</span>
-                        </a>
-                    </li>
-                    {% endif %}
-                    {% if page.next.url %}
-                    <li class="next">
-                        <a href="{{ page.next.url | prepend: site.baseurl | replace: '//', '/' }}" data-toggle="tooltip" data-placement="top" title="{{page.next.title}}">
-                        Next<br>
-                        <span>{{page.next.title}}</span>
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
+        <ul class="pager">
+          {% if page.previous.url %}
+          <li class="previous">
+            <a href="{{ page.previous.url | prepend: site.baseurl | replace: '//', '/' }}" data-toggle="tooltip" data-placement="top" title="{{page.previous.title}}">
+              Previous<br>
+              <span>{{page.previous.title}}</span>
+            </a>
+          </li>
+          {% endif %}
+          {% if page.next.url %}
+          <li class="next">
+            <a href="{{ page.next.url | prepend: site.baseurl | replace: '//', '/' }}" data-toggle="tooltip" data-placement="top" title="{{page.next.title}}">
+              Next<br>
+              <span>{{page.next.title}}</span>
+            </a>
+          </li>
+          {% endif %}
+        </ul>
 
 
-                <!--Gitalk评论start  -->
-                {% if site.gitalk.enable %}
-                <!-- 引入Gitalk评论插件  -->
-                <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
-                <script src="https://unpkg.com/gitalk@latest/dist/gitalk.min.js"></script>
-                <div id="gitalk-container"></div>
-                <!-- 引入一个生产md5的js，用于对id值进行处理，防止其过长 -->
-                <!-- Thank DF:https://github.com/NSDingFan/NSDingFan.github.io/issues/3#issuecomment-407496538 -->
-                <script src="{{ site.baseurl }}/js/md5.min.js"></script>
-                <script type="text/javascript">
-                    var gitalk = new Gitalk({
-                    clientID: '{{site.gitalk.clientID}}',
-                    clientSecret: '{{site.gitalk.clientSecret}}',
-                    repo: '{{site.gitalk.repo}}',
-                    owner: '{{site.gitalk.owner}}',
-                    admin: ['{{site.gitalk.admin}}'],
-                    distractionFreeMode: {{site.gitalk.distractionFreeMode}},
-                    id: md5(location.pathname),
-                    });
-                    gitalk.render('gitalk-container');
-                </script>
-                {% endif %}
-                <!-- Gitalk end -->
+        <!--Gitalk评论start  -->
+        {% if site.gitalk.enable %}
+        <!-- 引入Gitalk评论插件  -->
+        <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+        <script src="https://unpkg.com/gitalk@latest/dist/gitalk.min.js"></script>
+        <div id="gitalk-container"></div>
+        <!-- 引入一个生产md5的js，用于对id值进行处理，防止其过长 -->
+        <!-- Thank DF:https://github.com/NSDingFan/NSDingFan.github.io/issues/3#issuecomment-407496538 -->
+        <script src="{{ site.baseurl }}/js/md5.min.js"></script>
+        <script type="text/javascript">
+            var gitalk = new Gitalk({
+                clientID: '{{site.gitalk.clientID}}',
+                clientSecret: '{{site.gitalk.clientSecret}}',
+                repo: '{{site.gitalk.repo}}',
+                owner: '{{site.gitalk.owner}}',
+                admin: ['{{site.gitalk.admin}}'],
+                distractionFreeMode: {{site.gitalk.distractionFreeMode}},
+            id: md5(location.pathname),
+            });
+            gitalk.render('gitalk-container');
+        </script>
+        {% endif %}
+        <!-- Gitalk end -->
 
-                {% if site.disqus_username %}
-                <!-- disqus 评论框 start -->
-                <div class="comment">
-                    <div id="disqus_thread" class="disqus-thread"></div>
-                </div>
-                <!-- disqus 评论框 end -->
-                {% endif %}
+        {% if site.disqus_username %}
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+          <div id="disqus_thread" class="disqus-thread"></div>
+        </div>
+        <!-- disqus 评论框 end -->
+        {% endif %}
 
-            </div>
+      </div>
 
-    <!-- Side Catalog Container -->
-        {% if page.catalog %}
-            <div class="
+      <!-- Side Catalog Container -->
+      {% if page.catalog %}
+      <div class="
                 col-lg-2 col-lg-offset-0
                 visible-lg-block
                 sidebar-container
                 catalog-container">
-                <div class="side-catalog">
-                    <hr class="hidden-sm hidden-xs">
-                    <h5>
-                        <a class="catalog-toggle" href="#">目录</a>
-                    </h5>
-                    <ul class="catalog-body"></ul>
-                </div>
-            </div>
-        {% endif %}
+        <div class="side-catalog">
+          <hr class="hidden-sm hidden-xs">
+          <h5>
+            <a class="catalog-toggle" href="#">目录</a>
+          </h5>
+          <ul class="catalog-body"></ul>
+        </div>
+      </div>
+      {% endif %}
 
-    <!-- Sidebar Container -->
-            <div class="
+      <!-- Sidebar Container -->
+      <div class="
                 col-lg-8 col-lg-offset-2
                 col-md-10 col-md-offset-1
                 sidebar-container">
 
-                <!-- Featured Tags -->
-                {% if site.featured-tags %}
-                <section>
-                    <hr class="hidden-sm hidden-xs">
-                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
-                    <div class="tags">
-        				{% for tag in site.tags %}
-                            {% if tag[1].size > {{site.featured-condition-size}} %}
-                				<a href="/tags/#{{ tag[0] }}" title="{{ tag[0] }}" rel="{{ tag[1].size }}">
-                                    {{ tag[0] }}
-                                </a>
-                            {% endif %}
-        				{% endfor %}
-        			</div>
-                </section>
-                {% endif %}
+        <!-- Featured Tags -->
+        {% if site.featured-tags %}
+        <section>
+          <hr class="hidden-sm hidden-xs">
+          <h5><a href="/tags/">FEATURED TAGS</a></h5>
+          <div class="tags">
+            {% for tag in site.tags %}
+            {% if tag[1].size > {{site.featured-condition-size}} %}
+            <a href="/tags/#{{ tag[0] }}" title="{{ tag[0] }}" rel="{{ tag[1].size }}">
+              {{ tag[0] }}
+            </a>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
 
-                <!-- Friends Blog -->
-                {% if site.friends %}
-                <hr>
-                <h5>FRIENDS</h5>
-                <ul class="list-inline">
-                    {% for friend in site.friends %}
-                        <li><a href="{{friend.href}}">{{friend.title}}</a></li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-            </div>
-        </div>
+        <!-- Friends Blog -->
+        {% if site.friends %}
+        <hr>
+        <h5>FRIENDS</h5>
+        <ul class="list-inline">
+          {% for friend in site.friends %}
+          <li><a href="{{friend.href}}">{{friend.title}}</a></li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
     </div>
+  </div>
 </article>
 
 
@@ -610,12 +194,12 @@ layout: default
 <!-- async load function -->
 <script>
     function async(u, c) {
-      var d = document, t = 'script',
-          o = d.createElement(t),
-          s = d.getElementsByTagName(t)[0];
-      o.src = u;
-      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
-      s.parentNode.insertBefore(o, s);
+        var d = document, t = 'script',
+            o = d.createElement(t),
+            s = d.getElementsByTagName(t)[0];
+        o.src = u;
+        if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+        s.parentNode.insertBefore(o, s);
     }
 </script>
 <!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
@@ -631,14 +215,14 @@ layout: default
     })
 </script>
 <style>
-    /* place left on bigger screen */
-    @media all and (min-width: 800px) {
-        .anchorjs-link{
-            position: absolute;
-            left: -0.75em;
-            font-size: 1.1em;
-            margin-top : -0.1em;
-        }
+  /* place left on bigger screen */
+  @media all and (min-width: 800px) {
+    .anchorjs-link{
+      position: absolute;
+      left: -0.75em;
+      font-size: 1.1em;
+      margin-top : -0.1em;
     }
+  }
 </style>
 {% endif %}
