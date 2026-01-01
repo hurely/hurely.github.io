@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI 小说 - 卷宗架构版 v6.0</title>
+    <title>AI 小说 - 数据备份版 v6.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #F7F8FA; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* 页面布局：全屏 Flex */
+        /* 页面布局 */
         .page-view { 
             display: none; 
             position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
@@ -34,7 +34,7 @@
         <div class="flex-none bg-white p-4 pt-12 pb-4 border-b">
             <div class="flex justify-between items-center">
                 <h1 class="text-2xl font-bold text-gray-800">AI 创作台</h1>
-                <button onclick="openSettings()" class="text-gray-400 text-lg p-2"><i class="fas fa-cog"></i></button>
+                <button onclick="openSettings()" class="text-gray-500 text-lg p-2 border rounded-full hover:bg-gray-100 transition"><i class="fas fa-cog"></i></button>
             </div>
             <div onclick="startNewBook()" class="mt-4 bg-gradient-to-r from-orange-500 to-orange-400 rounded-2xl p-6 text-white shadow-lg shadow-orange-200 cursor-pointer active:scale-95 transition">
                 <h3 class="font-bold text-xl mb-1"><i class="fas fa-plus-circle mr-2"></i>创建新书</h3>
@@ -70,7 +70,7 @@
                     <input type="text" id="input-title" class="w-full bg-transparent outline-none text-sm p-1" placeholder="输入或生成书名">
                 </div>
                 <div class="bg-gray-50 p-3 rounded-xl border" id="box-cheat">
-                    <div class="flex justify-between mb-1 items-center"><label class="font-bold text-sm required">金手指/核心梗</label><div class="flex gap-1"><select id="model-select-cheat" class="text-xs border rounded w-16"></select><button onclick="aiHelp('cheat','model-select-cheat')" class="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded">生成</button></div></div>
+                    <div class="flex justify-between mb-1 items-center"><label class="font-bold text-sm required">金手指</label><div class="flex gap-1"><select id="model-select-cheat" class="text-xs border rounded w-16"></select><button onclick="aiHelp('cheat','model-select-cheat')" class="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded">生成</button></div></div>
                     <textarea id="input-cheat" rows="2" class="w-full bg-transparent outline-none text-sm p-1" placeholder="重生获得..."></textarea>
                 </div>
                 <div class="bg-gray-50 p-3 rounded-xl border" id="box-synopsis">
@@ -80,9 +80,7 @@
             </div>
         </div>
         <div class="fixed-footer p-4">
-            <button onclick="createAndGoToOverview()" class="w-full bg-orange-500 text-white py-3 rounded-full font-bold shadow-lg hover:bg-orange-600 active:scale-95 transition">
-                下一步：规划全书分卷
-            </button>
+            <button onclick="createAndGoToOverview()" class="w-full bg-orange-500 text-white py-3 rounded-full font-bold shadow-lg hover:bg-orange-600 active:scale-95 transition">下一步：规划全书分卷</button>
         </div>
     </div>
 
@@ -92,28 +90,18 @@
             <h2 class="flex-1 text-center font-bold truncate px-4" id="overview-title">全书架构</h2>
             <button onclick="addVolume()" class="text-orange-500 text-sm font-bold"><i class="fas fa-plus mr-1"></i>加卷</button>
         </div>
-
         <div class="scroll-content p-4">
             <div class="bg-white p-4 rounded-xl shadow-sm mb-4 border border-purple-50">
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="font-bold text-gray-800 text-sm"><i class="fas fa-map text-purple-500 mr-2"></i>全书总大纲</h3>
-                    <div class="flex gap-2">
-                        <select id="model-select-total" class="text-xs border rounded w-20"></select>
-                        <button onclick="aiGenerateTotalOutline()" class="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded">AI 规划</button>
-                    </div>
+                    <div class="flex gap-2"><select id="model-select-total" class="text-xs border rounded w-20"></select><button onclick="aiGenerateTotalOutline()" class="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded">AI 规划</button></div>
                 </div>
-                <textarea id="total-outline-input" class="w-full h-32 text-sm bg-gray-50 rounded p-2 border-none outline-none resize-none" placeholder="在这里规划全书的主线剧情..."></textarea>
+                <textarea id="total-outline-input" class="w-full h-32 text-sm bg-gray-50 rounded p-2 border-none outline-none resize-none" placeholder="全书主线剧情..."></textarea>
                 <button onclick="saveTotalOutline()" class="w-full mt-2 bg-purple-500 text-white text-xs py-2 rounded">保存总大纲</button>
             </div>
-
             <div class="flex justify-between items-end mb-2">
                 <span class="text-xs text-gray-500 font-bold">分卷列表</span>
-                <div class="flex gap-2">
-                    <select id="model-select-volumes" class="text-xs border rounded w-20"></select>
-                    <button onclick="aiGenerateVolumes()" class="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-xs font-bold border border-orange-200">
-                        <i class="fas fa-magic mr-1"></i>AI 自动分卷
-                    </button>
-                </div>
+                <div class="flex gap-2"><select id="model-select-volumes" class="text-xs border rounded w-20"></select><button onclick="aiGenerateVolumes()" class="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-xs font-bold border border-orange-200">AI 自动分卷</button></div>
             </div>
             <div id="volume-list" class="space-y-3 pb-10"></div>
         </div>
@@ -125,21 +113,13 @@
             <h2 class="flex-1 text-center font-bold truncate px-4" id="volume-title-header">分卷详情</h2>
             <button onclick="addChapter()" class="text-orange-500 text-sm"><i class="fas fa-plus"></i> 加章</button>
         </div>
-
         <div class="scroll-content p-4">
             <div class="bg-white p-3 rounded-xl shadow-sm mb-4 border-l-4 border-orange-400">
-                <div class="text-xs text-gray-400 mb-1">本卷大纲</div>
-                <p id="current-volume-outline" class="text-sm text-gray-700 leading-relaxed">...</p>
+                <div class="text-xs text-gray-400 mb-1">本卷大纲</div><p id="current-volume-outline" class="text-sm text-gray-700 leading-relaxed">...</p>
             </div>
-
             <div class="flex justify-between items-center mb-2">
                 <span class="text-xs text-gray-500">章节列表 (<span id="chapter-count">0</span>)</span>
-                <div class="flex gap-2">
-                    <select id="model-select-chapters" class="text-xs border rounded w-20"></select>
-                    <button onclick="aiGenerateChapters()" class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-bold">
-                        <i class="fas fa-list-ol mr-1"></i>AI 规划章节
-                    </button>
-                </div>
+                <div class="flex gap-2"><select id="model-select-chapters" class="text-xs border rounded w-20"></select><button onclick="aiGenerateChapters()" class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-bold">AI 规划章节</button></div>
             </div>
             <div id="chapter-list" class="space-y-3 pb-10"></div>
         </div>
@@ -148,20 +128,13 @@
     <div id="view-editor" class="page-view bg-white">
         <div class="flex-none border-b px-4 py-3 flex justify-between items-center bg-white z-20 shadow-sm">
             <button onclick="saveAndExitEditor()" class="text-gray-500"><i class="fas fa-chevron-left"></i></button>
-            <div class="text-center">
-                <h2 id="editor-chapter-title" class="font-bold text-sm">第一章</h2>
-                <div class="text-xs text-green-500 flex items-center justify-center gap-1">
-                    <div class="w-1.5 h-1.5 bg-green-500 rounded-full"></div> 大纲挂载中
-                </div>
-            </div>
+            <div class="text-center"><h2 id="editor-chapter-title" class="font-bold text-sm">第一章</h2></div>
             <button onclick="toggleOutlineDrawer()" class="text-orange-500 text-sm">看大纲</button>
         </div>
         <div id="editor-content" contenteditable="true" class="scroll-content p-5 text-lg leading-loose outline-none text-gray-800" placeholder="正文..." oninput="autoSaveContent()"></div>
         <div class="fixed-footer p-3 bg-gray-50 flex gap-2 items-center">
             <select id="model-select-writer" class="text-xs bg-white border border-gray-300 rounded px-2 h-10 w-24"></select>
-            <button onclick="aiWriteContent()" class="flex-1 bg-gradient-to-r from-orange-500 to-orange-400 text-white h-10 rounded-lg font-medium shadow-md flex items-center justify-center active:scale-95">
-                <i class="fas fa-pen-fancy mr-2"></i> 流式扩写
-            </button>
+            <button onclick="aiWriteContent()" class="flex-1 bg-gradient-to-r from-orange-500 to-orange-400 text-white h-10 rounded-lg font-medium shadow-md flex items-center justify-center active:scale-95">流式扩写</button>
         </div>
         <div id="outline-drawer" class="absolute top-14 right-4 w-64 bg-yellow-50 border border-yellow-200 shadow-xl rounded-xl p-4 hidden z-30">
             <div class="flex justify-between items-center mb-2"><h4 class="font-bold text-yellow-800 text-xs">本章大纲</h4><button onclick="toggleOutlineDrawer()" class="text-gray-400"><i class="fas fa-times"></i></button></div>
@@ -172,17 +145,45 @@
 
     <div id="modal-settings" class="hidden fixed inset-0 bg-black/50 z-[100] flex items-end sm:items-center justify-center sm:p-4">
         <div class="bg-white w-full sm:max-w-md h-[85vh] sm:h-auto sm:rounded-xl rounded-t-xl flex flex-col shadow-2xl">
-            <div class="p-4 border-b flex justify-between items-center bg-gray-50"><h3 class="font-bold text-gray-800">模型管理</h3><button onclick="closeSettings()" class="text-gray-500 p-2"><i class="fas fa-times"></i></button></div>
-            <div class="flex-1 overflow-y-auto p-4 bg-gray-50">
-                <div class="mb-6"><label class="text-xs font-bold text-gray-500 uppercase mb-2 block">已存模型</label><div id="model-list" class="space-y-2"></div></div>
+            <div class="p-4 border-b flex justify-between items-center bg-gray-50">
+                <h3 class="font-bold text-gray-800">设置与数据</h3>
+                <button onclick="closeSettings()" class="text-gray-500 p-2"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-6">
+                
                 <div class="bg-white p-4 rounded-xl border shadow-sm">
-                    <h4 class="font-bold text-sm mb-3">添加新模型</h4>
-                    <div class="space-y-3">
-                        <input id="setting-name" class="w-full border p-2 rounded text-sm" placeholder="名称 (如 DeepSeek)">
-                        <input id="setting-key" type="password" class="w-full border p-2 rounded text-sm" placeholder="sk-...">
-                        <div class="flex gap-2"><input id="setting-url" class="w-full border p-2 rounded text-sm" value="https://api.openai.com/v1"><input id="setting-model" class="w-full border p-2 rounded text-sm" value="gpt-4o-mini"></div>
+                    <h4 class="font-bold text-sm mb-3 flex items-center"><i class="fas fa-database text-blue-500 mr-2"></i>数据备份与迁移</h4>
+                    <p class="text-xs text-gray-400 mb-3">换手机或清空缓存前，请务必导出备份。</p>
+                    <div class="flex gap-3">
+                        <button onclick="exportData()" class="flex-1 bg-green-500 text-white py-2 rounded-lg text-sm font-bold shadow hover:bg-green-600 transition">
+                            <i class="fas fa-download mr-1"></i>导出数据
+                        </button>
+                        <button onclick="triggerImport()" class="flex-1 bg-blue-500 text-white py-2 rounded-lg text-sm font-bold shadow hover:bg-blue-600 transition">
+                            <i class="fas fa-upload mr-1"></i>导入数据
+                        </button>
+                        <input type="file" id="import-file" class="hidden" accept=".json" onchange="handleFileImport(event)">
                     </div>
-                    <button onclick="saveModelConfig()" class="w-full mt-4 bg-black text-white py-2 rounded text-sm font-bold">保存</button>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-xs font-bold text-gray-500 uppercase">已存模型</label>
+                    </div>
+                    <div id="model-list" class="space-y-2 mb-4"></div>
+                    
+                    <div class="bg-white p-4 rounded-xl border shadow-sm">
+                        <h4 class="font-bold text-sm mb-3">添加新模型</h4>
+                        <div class="space-y-3">
+                            <input id="setting-name" class="w-full border p-2 rounded text-sm" placeholder="名称 (如 DeepSeek)">
+                            <input id="setting-key" type="password" class="w-full border p-2 rounded text-sm" placeholder="sk-...">
+                            <div class="flex gap-2">
+                                <input id="setting-url" class="w-full border p-2 rounded text-sm" value="https://api.openai.com/v1">
+                                <input id="setting-model" class="w-full border p-2 rounded text-sm" value="gpt-4o-mini">
+                            </div>
+                        </div>
+                        <button onclick="saveModelConfig()" class="w-full mt-4 bg-black text-white py-2 rounded text-sm font-bold">保存模型配置</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -190,335 +191,187 @@
 
     <div id="stream-overlay" class="hidden fixed inset-0 bg-transparent z-[200] flex flex-col items-center justify-end pb-24 pointer-events-none">
         <div class="bg-gray-800 text-white shadow-xl rounded-full px-6 py-3 flex items-center gap-3 pointer-events-auto">
-            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span class="text-xs font-bold" id="stream-status">AI 正在输出...</span>
-            <button onclick="stopStream()" class="text-xs bg-gray-600 hover:bg-red-500 px-3 py-1 rounded-full ml-2">停止</button>
+            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div><span class="text-xs font-bold" id="stream-status">AI 正在输出...</span><button onclick="stopStream()" class="text-xs bg-gray-600 hover:bg-red-500 px-3 py-1 rounded-full ml-2">停止</button>
         </div>
     </div>
-
     <div id="json-preview-modal" class="hidden fixed inset-0 bg-black/50 z-[90] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-xl p-4 flex flex-col max-h-[80vh]">
-            <h3 class="font-bold mb-2">AI 规划中...</h3>
-            <div id="json-stream-area" class="flex-1 bg-gray-900 text-green-400 p-3 rounded text-xs overflow-y-auto whitespace-pre-wrap font-mono h-64"></div>
-            <div class="mt-4 flex justify-end gap-2">
-                <button onclick="cancelJson()" class="text-gray-500 text-sm px-3">取消</button>
-                <button onclick="finishJsonGeneration()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">解析并生成</button>
-            </div>
+            <h3 class="font-bold mb-2">AI 规划中...</h3><div id="json-stream-area" class="flex-1 bg-gray-900 text-green-400 p-3 rounded text-xs overflow-y-auto whitespace-pre-wrap font-mono h-64"></div>
+            <div class="mt-4 flex justify-end gap-2"><button onclick="cancelJson()" class="text-gray-500 text-sm px-3">取消</button><button onclick="finishJsonGeneration()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">解析并生成</button></div>
         </div>
     </div>
 
     <script>
         const genres = ["玄幻", "都市", "仙侠", "科幻", "悬疑", "同人"];
-        // --- State V6 ---
-        // books -> [ {id, title, ..., totalOutline, volumes: [ {id, title, outline, chapters: []} ] } ]
         let appState = { models: [], books: [], activeBookId: null, activeVolumeId: null, currentChapterId: null };
-        let abortController = null;
-        let streamBuffer = ""; // 暂存流式数据
+        let abortController = null, streamBuffer = "", jsonTargetType = '';
 
-        window.onload = () => {
-            loadState();
-            renderGenres();
-            renderBookList();
-            initModelSelects();
-        };
+        window.onload = () => { loadState(); renderGenres(); renderBookList(); initModelSelects(); };
 
-        // --- 1. 核心导航 ---
-        function switchPage(id) {
-            document.querySelectorAll('.page-view').forEach(e => e.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            if(id === 'view-home') renderBookList();
+        // --- Data Management (Export/Import) ---
+        function exportData() {
+            const dataStr = JSON.stringify(appState, null, 2);
+            const blob = new Blob([dataStr], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ai_novel_backup_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            alert("导出成功！请妥善保存 json 文件。");
         }
 
+        function triggerImport() { document.getElementById('import-file').click(); }
+
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    // 简单校验
+                    if (!data.books && !data.models) throw new Error("文件格式不正确，缺少关键数据");
+                    
+                    if (confirm("【警告】导入将覆盖当前所有数据！确定要继续吗？")) {
+                        // 兼容性合并：如果导入的数据缺少 models，保留当前的 models
+                        if (!data.models || data.models.length === 0) {
+                            data.models = appState.models; 
+                        }
+                        
+                        appState = data;
+                        saveState(); // 保存到 localStorage
+                        
+                        // 刷新界面
+                        renderBookList();
+                        renderModelList();
+                        initModelSelects();
+                        alert("数据导入成功！");
+                        closeSettings();
+                        switchPage('view-home'); // 回到首页
+                    }
+                } catch (err) {
+                    alert("导入失败: " + err.message);
+                }
+                // 清空 input 允许再次选择同名文件
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Core Logic ---
+        function switchPage(id) { document.querySelectorAll('.page-view').forEach(e => e.classList.remove('active')); document.getElementById(id).classList.add('active'); if(id==='view-home') renderBookList(); }
         function createAndGoToOverview() {
             const title = document.getElementById('input-title').value.trim();
             const cheat = document.getElementById('input-cheat').value.trim();
             const synopsis = document.getElementById('input-synopsis').value.trim();
             if(!title || !synopsis) return alert("请填写完整");
-            
-            const newBook = {
-                id: Date.now(),
-                title, cheat, synopsis,
-                genre: document.querySelector('input[name="genre"]:checked')?.value || '玄幻',
-                audience: document.querySelector('input[name="audience"]:checked').value,
-                totalOutline: '',
-                volumes: [] // 卷数组
-            };
-            appState.books.push(newBook);
-            appState.activeBookId = newBook.id;
-            saveState();
-            openBookOverview(newBook.id);
+            const newBook = { id: Date.now(), title, cheat, synopsis, genre: document.querySelector('input[name="genre"]:checked')?.value||'玄幻', audience: document.querySelector('input[name="audience"]:checked').value, totalOutline: '', volumes: [] };
+            appState.books.push(newBook); appState.activeBookId = newBook.id; saveState(); openBookOverview(newBook.id);
         }
+        function openBookOverview(id) { appState.activeBookId = parseInt(id); const book = getActiveBook(); document.getElementById('overview-title').innerText = book.title; document.getElementById('total-outline-input').value = book.totalOutline||''; renderVolumeList(); switchPage('view-overview'); }
+        function openVolume(volId) { appState.activeVolumeId = volId; const vol = getActiveBook().volumes.find(v => v.id === volId); document.getElementById('volume-title-header').innerText = vol.title; document.getElementById('current-volume-outline').innerText = vol.outline; renderChapterList(); switchPage('view-volume'); }
 
-        function openBookOverview(id) {
-            appState.activeBookId = parseInt(id);
-            const book = getActiveBook();
-            document.getElementById('overview-title').innerText = book.title;
-            document.getElementById('total-outline-input').value = book.totalOutline || '';
-            renderVolumeList();
-            switchPage('view-overview');
-        }
-
-        function openVolume(volId) {
-            appState.activeVolumeId = volId;
-            const book = getActiveBook();
-            const vol = book.volumes.find(v => v.id === volId);
-            document.getElementById('volume-title-header').innerText = vol.title;
-            document.getElementById('current-volume-outline').innerText = vol.outline;
-            renderChapterList();
-            switchPage('view-volume');
-        }
-
-        // --- 2. AI 核心逻辑 (流式) ---
+        // --- AI Stream ---
         async function streamAI(prompt, systemPrompt, modelId, onChunk, onDone) {
             const modelConfig = appState.models.find(m => m.id === modelId);
             if(!modelConfig) { alert("请配置模型"); return; }
-            
             document.getElementById('stream-overlay').classList.remove('hidden');
             abortController = new AbortController();
-
             try {
                 const res = await fetch(`${modelConfig.url.replace(/\/$/, "")}/chat/completions`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${modelConfig.key}`},
-                    body: JSON.stringify({
-                        model: modelConfig.modelName,
-                        messages: [{role:"system",content:systemPrompt + " 请务必使用简体中文。"},{role:"user",content:prompt}],
-                        temperature: 0.7, stream: true
-                    }),
-                    signal: abortController.signal
+                    method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${modelConfig.key}`},
+                    body: JSON.stringify({ model: modelConfig.modelName, messages: [{role:"system",content:systemPrompt+" 请务必使用简体中文。"},{role:"user",content:prompt}], temperature: 0.7, stream: true }), signal: abortController.signal
                 });
-
-                const reader = res.body.getReader();
-                const decoder = new TextDecoder();
-                let fullText = "";
-
+                const reader = res.body.getReader(); const decoder = new TextDecoder(); let fullText = "";
                 while(true) {
-                    const {done, value} = await reader.read();
-                    if(done) break;
+                    const {done, value} = await reader.read(); if(done) break;
                     const chunk = decoder.decode(value, {stream:true});
-                    const lines = chunk.split('\n');
-                    for(const line of lines) {
+                    chunk.split('\n').forEach(line => {
                         if(line.startsWith('data: ')) {
-                            const jsonStr = line.slice(6);
-                            if(jsonStr === '[DONE]') continue;
-                            try {
-                                const json = JSON.parse(jsonStr);
-                                const txt = json.choices[0].delta.content || "";
-                                fullText += txt;
-                                onChunk(txt, fullText);
-                            } catch(e){}
+                            const jsonStr = line.slice(6); if(jsonStr==='[DONE]') return;
+                            try { fullText += JSON.parse(jsonStr).choices[0].delta.content||""; onChunk(JSON.parse(jsonStr).choices[0].delta.content||"", fullText); } catch(e){}
                         }
-                    }
+                    });
                 }
                 if(onDone) onDone(fullText);
-            } catch(e) { if(e.name!=='AbortError') alert(e.message); }
-            finally { document.getElementById('stream-overlay').classList.add('hidden'); abortController=null; }
+            } catch(e) { if(e.name!=='AbortError') alert(e.message); } finally { document.getElementById('stream-overlay').classList.add('hidden'); abortController=null; }
         }
         function stopStream() { if(abortController) abortController.abort(); }
 
-        // --- 3. 业务功能：总大纲 & 分卷 ---
-        
-        // 3.1 生成总大纲
+        // --- Business Logic ---
         function aiGenerateTotalOutline() {
-            const book = getActiveBook();
-            const modelId = document.getElementById('model-select-total').value;
-            const prompt = `我正在写《${book.title}》。\n简介：${book.synopsis}\n金手指：${book.cheat}\n\n请帮我规划全书的【总大纲】，概括全书的主线剧情走向，以及大致的字数/进度规划。`;
-            const el = document.getElementById('total-outline-input');
-            el.value = "";
-            streamAI(prompt, "你是一个网文主编。", modelId, (chunk) => { el.value += chunk; el.scrollTop = el.scrollHeight; }, () => saveTotalOutline());
+            const b = getActiveBook(); const el = document.getElementById('total-outline-input'); el.value = "";
+            streamAI(`写《${b.title}》总大纲。简介：${b.synopsis} 金手指：${b.cheat}`, "网文主编", document.getElementById('model-select-total').value, (c)=>el.value+=c, ()=>saveTotalOutline());
         }
+        function saveTotalOutline() { getActiveBook().totalOutline = document.getElementById('total-outline-input').value; saveState(); }
 
-        function saveTotalOutline() {
-            getActiveBook().totalOutline = document.getElementById('total-outline-input').value;
-            saveState();
-        }
-
-        // 3.2 生成分卷 (JSON流式)
-        let jsonTargetType = ''; // 'volume' or 'chapter'
-        function aiGenerateVolumes() {
-            const book = getActiveBook();
-            const modelId = document.getElementById('model-select-volumes').value;
-            // 提示词要求 JSON
-            const prompt = `我正在写《${book.title}》。\n总大纲：${book.totalOutline || book.synopsis}\n\n请将全书规划为 3-5 卷（Volumes）。\n格式要求：JSON数组，包含 "title" (卷名) 和 "outline" (卷大纲) 两个字段。`;
-            
-            startJsonStream(prompt, modelId, 'volume');
-        }
-
-        // 3.3 生成章节 (JSON流式)
+        function aiGenerateVolumes() { startJsonStream(`将《${getActiveBook().title}》分为3-5卷。JSON数组格式：[{"title":"卷名","outline":"大纲"}]`, document.getElementById('model-select-volumes').value, 'volume'); }
         function aiGenerateChapters() {
-            const book = getActiveBook();
-            const vol = book.volumes.find(v => v.id === appState.activeVolumeId);
-            const modelId = document.getElementById('model-select-chapters').value;
-            const prompt = `书名《${book.title}》。\n当前是【${vol.title}】。\n本卷大纲：${vol.outline}\n\n请规划接下来的 5 章。格式要求：JSON数组，包含 "title" 和 "outline"。`;
-            
-            startJsonStream(prompt, modelId, 'chapter');
+            const b = getActiveBook(); const v = b.volumes.find(v=>v.id===appState.activeVolumeId);
+            startJsonStream(`书名《${b.title}》卷名《${v.title}》。卷大纲：${v.outline}。规划接下来的5章。JSON数组格式：[{"title":"章名","outline":"大纲"}]`, document.getElementById('model-select-chapters').value, 'chapter');
         }
 
-        // JSON 处理通用逻辑
-        function startJsonStream(prompt, modelId, type) {
-            jsonTargetType = type;
-            document.getElementById('json-preview-modal').classList.remove('hidden');
-            const view = document.getElementById('json-stream-area');
-            view.innerText = "";
-            streamBuffer = "";
-            
-            streamAI(prompt, "你是一个严谨的架构师，只输出 JSON。", modelId, (chunk) => {
-                streamBuffer += chunk;
-                view.innerText += chunk;
-                view.scrollTop = view.scrollHeight;
-            }, () => {
-                document.getElementById('stream-status').innerText = "生成完毕，请解析";
-            });
+        function startJsonStream(prompt, mid, type) {
+            jsonTargetType = type; document.getElementById('json-preview-modal').classList.remove('hidden'); const v = document.getElementById('json-stream-area'); v.innerText = ""; streamBuffer = "";
+            streamAI(prompt, "只输出JSON。", mid, (c)=>{streamBuffer+=c; v.innerText+=c; v.scrollTop=v.scrollHeight}, ()=>{document.getElementById('stream-status').innerText="完成"});
         }
-
         function finishJsonGeneration() {
             try {
-                const jsonStr = streamBuffer.replace(/```json|```/g, '').trim();
-                const start = jsonStr.indexOf('[');
-                const end = jsonStr.lastIndexOf(']');
-                if(start === -1 || end === -1) throw new Error("JSON 格式错误");
-                const data = JSON.parse(jsonStr.substring(start, end+1));
-
-                const book = getActiveBook();
-                
-                if(jsonTargetType === 'volume') {
-                    data.forEach((v, i) => {
-                        book.volumes.push({ id: Date.now()+i, title: v.title, outline: v.outline, chapters: [] });
-                    });
-                    renderVolumeList();
-                } else {
-                    const vol = book.volumes.find(v => v.id === appState.activeVolumeId);
-                    data.forEach((c, i) => {
-                        vol.chapters.push({ id: Date.now()+i, title: c.title, outline: c.outline, content: '' });
-                    });
-                    renderChapterList();
-                }
-                saveState();
-                cancelJson();
-            } catch(e) { alert("解析失败：" + e.message); }
+                const j = JSON.parse(streamBuffer.replace(/```json|```/g, '').trim().match(/\[.*\]/s)[0]);
+                if(jsonTargetType==='volume') { j.forEach((x,i)=>getActiveBook().volumes.push({id:Date.now()+i, title:x.title, outline:x.outline, chapters:[]})); renderVolumeList(); }
+                else { const v=getActiveBook().volumes.find(v=>v.id===appState.activeVolumeId); j.forEach((x,i)=>v.chapters.push({id:Date.now()+i, title:x.title, outline:x.outline, content:''})); renderChapterList(); }
+                saveState(); cancelJson();
+            } catch(e) { alert("解析失败"); }
         }
         function cancelJson() { document.getElementById('json-preview-modal').classList.add('hidden'); }
 
-        // --- 4. 渲染列表 ---
-        function renderVolumeList() {
-            const list = document.getElementById('volume-list');
-            const book = getActiveBook();
-            list.innerHTML = '';
-            book.volumes.forEach(v => {
-                list.innerHTML += `
-                    <div onclick="openVolume(${v.id})" class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm active:scale-95 transition cursor-pointer">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="font-bold text-gray-800">${v.title}</span>
-                            <span class="text-xs bg-gray-100 text-gray-500 px-2 rounded">${v.chapters.length} 章</span>
-                        </div>
-                        <p class="text-xs text-gray-400 truncate">${v.outline}</p>
-                    </div>`;
-            });
-        }
-
-        function renderChapterList() {
-            const list = document.getElementById('chapter-list');
-            const book = getActiveBook();
-            const vol = book.volumes.find(v => v.id === appState.activeVolumeId);
-            list.innerHTML = '';
-            document.getElementById('chapter-count').innerText = vol.chapters.length;
-            vol.chapters.forEach(c => {
-                list.innerHTML += `
-                    <div onclick="openEditor(${c.id})" class="bg-white p-3 rounded-lg border border-gray-200 active:scale-95 transition cursor-pointer">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="font-bold text-gray-700 text-sm">${c.title}</span>
-                            ${c.content.length>50 ? '<i class="fas fa-check text-green-500 text-xs"></i>' : ''}
-                        </div>
-                        <p class="text-xs text-gray-400 truncate">${c.outline}</p>
-                    </div>`;
-            });
-        }
-
-        // --- 5. 写作 & 辅助 ---
-        function openEditor(cId) {
-            appState.currentChapterId = cId;
-            const book = getActiveBook();
-            const vol = book.volumes.find(v => v.id === appState.activeVolumeId);
-            const ch = vol.chapters.find(c => c.id === cId);
-            document.getElementById('editor-chapter-title').innerText = ch.title;
-            document.getElementById('editor-content').innerHTML = ch.content || '';
-            document.getElementById('editor-outline-view').value = ch.outline;
-            switchPage('view-editor');
-        }
-
+        function openEditor(cId) { appState.currentChapterId = cId; const ch = getActiveBook().volumes.find(v=>v.id===appState.activeVolumeId).chapters.find(c=>c.id===cId); document.getElementById('editor-chapter-title').innerText=ch.title; document.getElementById('editor-content').innerHTML=ch.content||''; document.getElementById('editor-outline-view').value=ch.outline; switchPage('view-editor'); }
         function aiWriteContent() {
-            const modelId = document.getElementById('model-select-writer').value;
-            const book = getActiveBook();
-            const vol = book.volumes.find(v => v.id === appState.activeVolumeId);
-            const ch = vol.chapters.find(c => c.id === appState.currentChapterId);
-            const editor = document.getElementById('editor-content');
-
-            const sys = `书名《${book.title}》。\n卷名：${vol.title}。\n本章大纲：${ch.outline}。\n请根据大纲扩写正文。`;
-            const usr = `【当前进度】：\n${editor.innerText.slice(-500)}\n\n(继续写作)`;
-
-            const span = document.createElement('span');
-            span.className = "typing-cursor text-gray-600";
-            editor.appendChild(span);
-
-            streamAI(usr, sys, modelId, (chunk) => {
-                span.innerHTML = (span.innerText + chunk).replace(/\n/g, '<br>');
-                const sc = document.querySelector('#view-editor .scroll-content');
-                sc.scrollTop = sc.scrollHeight;
-            }, () => {
-                span.classList.remove('typing-cursor');
-                autoSaveContent();
-            });
+            const b=getActiveBook(); const v=b.volumes.find(x=>x.id===appState.activeVolumeId); const c=v.chapters.find(x=>x.id===appState.currentChapterId);
+            const ed=document.getElementById('editor-content'); const sp=document.createElement('span'); sp.className="typing-cursor text-gray-600"; ed.appendChild(sp);
+            streamAI(`【进度】\n${ed.innerText.slice(-500)}\n\n(续写)`, `书名《${b.title}》卷《${v.title}》章大纲：${c.outline}`, document.getElementById('model-select-writer').value, (c)=>{sp.innerHTML=(sp.innerText+c).replace(/\n/g,'<br>'); const s=document.querySelector('#view-editor .scroll-content'); s.scrollTop=s.scrollHeight}, ()=>{sp.classList.remove('typing-cursor'); autoSaveContent();});
         }
-        
-        function aiHelp(field, selectId) {
-            const modelId = document.getElementById(selectId).value;
-            const target = document.getElementById('input-'+field);
-            const ctx = `类型：${document.querySelector('input[name="audience"]:checked').value}。`;
-            let prompt = "";
-            if(field==='title') prompt=`为小说取名。${ctx}`;
-            else if(field==='cheat') prompt=`设计金手指。${ctx}`;
-            else prompt=`写简介。${ctx} 书名:${document.getElementById('input-title').value}`;
-            
-            target.value = "";
-            streamAI(prompt, "你是一个网文大神。", modelId, (chunk) => target.value += chunk);
-        }
+        function aiHelp(f, sid) { const t=document.getElementById('input-'+f); t.value=""; streamAI(`生成${f}`, "网文助手", document.getElementById(sid).value, (c)=>t.value+=c); }
 
         // --- Util ---
         function getActiveBook() { return appState.books.find(b => b.id === appState.activeBookId); }
         function saveState() { localStorage.setItem('ai_novel_v6', JSON.stringify(appState)); }
         function loadState() {
+            // V6 自动迁移 V5 数据
             const s = localStorage.getItem('ai_novel_v6');
-            if(s) appState = JSON.parse(s);
-            if(!appState.models) appState.models = [];
-            if(!appState.books) appState.books = [];
-        }
-        function renderBookList() {
-            const list = document.getElementById('book-list');
-            list.innerHTML = '';
-            document.getElementById('total-books').innerText = appState.books.length;
-            [...appState.books].reverse().forEach(b => {
-                list.innerHTML += `<div onclick="openBookOverview(${b.id})" class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 cursor-pointer"><h4 class="font-bold">${b.title}</h4><p class="text-xs text-gray-400 line-clamp-2">${b.synopsis}</p></div>`;
-            });
+            if(s) { appState = JSON.parse(s); }
+            else {
+                const v5 = localStorage.getItem('ai_novel_v5');
+                if(v5) {
+                    const old = JSON.parse(v5);
+                    appState.models = old.models||[];
+                    if(old.books) {
+                        appState.books = old.books.map(b => {
+                            if(b.volumes) return b;
+                            return { ...b, totalOutline:'', volumes: [{id:Date.now(), title:'第一卷', outline:'迁移数据', chapters: b.chapters||[]}] };
+                        });
+                    }
+                    saveState();
+                }
+            }
+            if(!appState.models) appState.models = []; if(!appState.books) appState.books = [];
         }
         function renderGenres() { document.getElementById('genre-container').innerHTML = genres.map(g => `<label class="border px-3 py-1 rounded-full text-sm text-gray-500 cursor-pointer hover:bg-orange-50"><input type="radio" name="genre" value="${g}" class="hidden tag-radio">${g}</label>`).join(''); }
-        function initModelSelects() {
-            ['title','cheat','synopsis','total','volumes','chapters','writer'].forEach(k => {
-                const el = document.getElementById('model-select-'+k);
-                el.innerHTML = appState.models.length ? '' : '<option>无模型</option>';
-                appState.models.forEach(m => { const o=document.createElement('option'); o.value=m.id; o.text=m.name; el.appendChild(o); });
-            });
-        }
-        // ... (保留之前的 Settings 增删改查逻辑、addVolume/addChapter手动添加逻辑、saveEditor逻辑) ...
-        function startNewBook() { ['input-title','input-cheat','input-synopsis'].forEach(id=>document.getElementById(id).value=''); switchPage('view-create'); }
+        function renderBookList() { document.getElementById('book-list').innerHTML = appState.books.map(b => `<div onclick="openBookOverview(${b.id})" class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 cursor-pointer"><h4 class="font-bold">${b.title}</h4><p class="text-xs text-gray-400 line-clamp-2">${b.synopsis}</p></div>`).reverse().join(''); document.getElementById('total-books').innerText=appState.books.length; }
+        function renderVolumeList() { document.getElementById('volume-list').innerHTML = getActiveBook().volumes.map(v => `<div onclick="openVolume(${v.id})" class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm cursor-pointer mb-2 flex justify-between"><span class="font-bold text-gray-800">${v.title}</span><span class="text-xs bg-gray-100 text-gray-500 px-2 rounded">${v.chapters.length} 章</span></div>`).join(''); }
+        function renderChapterList() { document.getElementById('chapter-list').innerHTML = getActiveBook().volumes.find(v=>v.id===appState.activeVolumeId).chapters.map(c => `<div onclick="openEditor(${c.id})" class="bg-white p-3 rounded-lg border border-gray-200 cursor-pointer mb-2"><span class="font-bold text-gray-700 text-sm">${c.title}</span><p class="text-xs text-gray-400 truncate">${c.outline}</p></div>`).join(''); }
+        function initModelSelects() { ['title','cheat','synopsis','total','volumes','chapters','writer'].forEach(k => { const e=document.getElementById('model-select-'+k); e.innerHTML=appState.models.length?'':'<option>无模型</option>'; appState.models.forEach(m=>{const o=document.createElement('option');o.value=m.id;o.text=m.name;e.appendChild(o)}) }); }
+        
+        // Settings UI
         function openSettings() { document.getElementById('modal-settings').classList.remove('hidden'); renderModelList(); }
         function closeSettings() { document.getElementById('modal-settings').classList.add('hidden'); initModelSelects(); }
-        function saveModelConfig() {
-            const name = document.getElementById('setting-name').value;
-            const key = document.getElementById('setting-key').value;
-            if(name && key) { appState.models.push({id:'m_'+Date.now(), name, key, url:document.getElementById('setting-url').value, modelName:document.getElementById('setting-model').value}); saveState(); renderModelList(); }
-        }
         function renderModelList() { document.getElementById('model-list').innerHTML = appState.models.map(m=>`<div class="flex justify-between p-2 bg-gray-50 border mb-1"><span>${m.name}</span><button onclick="deleteModel('${m.id}')" class="text-red-500">删</button></div>`).join(''); }
-        function deleteModel(id){ appState.models=appState.models.filter(m=>m.id!==id); saveState(); renderModelList(); }
+        function saveModelConfig() { const n=document.getElementById('setting-name').value; const k=document.getElementById('setting-key').value; if(n&&k){appState.models.push({id:'m_'+Date.now(), name:n, key:k, url:document.getElementById('setting-url').value, modelName:document.getElementById('setting-model').value}); saveState(); renderModelList();} }
+        function deleteModel(id){appState.models=appState.models.filter(m=>m.id!==id); saveState(); renderModelList();}
+
+        // Helper
+        function startNewBook() { ['input-title','input-cheat','input-synopsis'].forEach(id=>document.getElementById(id).value=''); switchPage('view-create'); }
         function addVolume() { getActiveBook().volumes.push({id:Date.now(), title:'新分卷', outline:'', chapters:[]}); saveState(); renderVolumeList(); }
         function addChapter() { getActiveBook().volumes.find(v=>v.id===appState.activeVolumeId).chapters.push({id:Date.now(), title:'新章', outline:'', content:''}); saveState(); renderChapterList(); }
         function saveAndExitEditor() { autoSaveContent(); switchPage('view-volume'); }
