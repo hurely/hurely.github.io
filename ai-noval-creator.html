@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI 小说 - 校验版 v4.1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #F7F8FA; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .page-view { display: none; animation: fadeIn 0.3s ease; }
+        .page-view.active { display: flex; flex-direction: column; height: 100vh; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        .tag-radio:checked + label { background-color: #FFF7E6; color: #FF9900; border-color: #FF9900; font-weight: bold; }
+        
+        /* 必填项的红点提示 */
+        .required::after { content: "*"; color: red; margin-left: 4px; }
+    </style>
+</head>
+<body>
+
+    <div id="view-home" class="page-view active">
+        <div class="bg-gradient-to-b from-orange-50 to-white p-6 pt-12 pb-4">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">AI 创作台</h1>
+                    <div onclick="openSettings()" class="mt-1 inline-flex items-center bg-gray-100 px-2 py-1 rounded text-xs text-gray-500 cursor-pointer hover:bg-gray-200 transition">
+                        <div class="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                        当前模型: <span id="home-model-name" class="font-bold ml-1">未配置</span>
+                        <i class="fas fa-chevron-right ml-2 text-gray-300"></i>
+                    </div>
+                </div>
+                <button onclick="openSettings()" class="text-gray-400 text-lg p-2"><i class="fas fa-cog"></i></button>
+            </div>
+            
+            <div onclick="switchPage('view-create')" class="bg-gradient-to-r from-orange-500 to-orange-400 rounded-2xl p-6 text-white shadow-lg shadow-orange-200 cursor-pointer relative overflow-hidden group">
+                <div class="relative z-10 transition transform group-active:scale-95">
+                    <h3 class="font-bold text-2xl mb-2">开始新书</h3>
+                    <p class="text-white/80 text-sm">设定 -> 大纲 -> 正文</p>
+                </div>
+                <i class="fas fa-feather-alt absolute -bottom-4 -right-4 text-8xl text-white/20"></i>
+            </div>
+        </div>
+
+        <div class="px-6">
+            <h3 class="font-bold text-gray-700 mb-4">我的作品</h3>
+            <div id="book-list" class="space-y-3">
+                <div class="text-center text-gray-400 py-10 text-sm">暂无作品，点击上方创建</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-create" class="page-view bg-white">
+        <div class="px-4 py-3 border-b flex items-center sticky top-0 bg-white z-10">
+            <button onclick="switchPage('view-home')" class="text-gray-600"><i class="fas fa-chevron-left"></i></button>
+            <h2 class="flex-1 text-center font-bold">新书设定</h2>
+        </div>
+
+        <div class="p-4 overflow-y-auto flex-1 space-y-6">
+            <div class="space-y-4">
+                <div>
+                    <label class="font-bold text-gray-700 block mb-2">核心受众</label>
+                    <div class="flex gap-4">
+                        <label class="flex-1 border rounded-lg p-3 text-center cursor-pointer transition hover:bg-gray-50">
+                            <input type="radio" name="audience" value="男频" class="hidden tag-radio" checked>
+                            <label class="block text-sm pointer-events-none">男频</label>
+                        </label>
+                        <label class="flex-1 border rounded-lg p-3 text-center cursor-pointer transition hover:bg-gray-50">
+                            <input type="radio" name="audience" value="女频" class="hidden tag-radio">
+                            <label class="block text-sm pointer-events-none">女频</label>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="font-bold text-gray-700 block mb-2">作品类型</label>
+                    <div class="flex flex-wrap gap-2" id="genre-container"></div>
+                </div>
+
+                <div class="bg-gray-50 p-3 rounded-xl border transition-colors focus-within:bg-white focus-within:border-orange-400 focus-within:ring-2 focus-within:ring-orange-100" id="box-title">
+                    <div class="flex justify-between mb-1">
+                        <label class="font-bold text-sm required">书名</label>
+                        <button onclick="aiHelp('title')" class="text-xs text-orange-500 hover:text-orange-600"><i class="fas fa-magic"></i> AI 生成</button>
+                    </div>
+                    <input type="text" id="input-title" class="w-full bg-transparent outline-none p-1" placeholder="必填，请输入书名">
+                </div>
+                
+                <div class="bg-gray-50 p-3 rounded-xl border transition-colors focus-within:bg-white focus-within:border-orange-400 focus-within:ring-2 focus-within:ring-orange-100" id="box-cheat">
+                    <div class="flex justify-between mb-1">
+                        <label class="font-bold text-sm required">金手指/核心梗</label>
+                        <button onclick="aiHelp('cheat')" class="text-xs text-orange-500 hover:text-orange-600"><i class="fas fa-magic"></i> AI 生成</button>
+                    </div>
+                    <textarea id="input-cheat" rows="2" class="w-full bg-transparent outline-none text-sm p-1" placeholder="必填，例如：重生获得百倍返利系统"></textarea>
+                </div>
+
+                <div class="bg-gray-50 p-3 rounded-xl border transition-colors focus-within:bg-white focus-within:border-orange-400 focus-within:ring-2 focus-within:ring-orange-100" id="box-synopsis">
+                    <div class="flex justify-between mb-1">
+                        <label class="font-bold text-sm required">全书简介</label>
+                        <button onclick="aiHelp('synopsis')" class="text-xs text-orange-500 hover:text-orange-600"><i class="fas fa-magic"></i> AI 生成</button>
+                    </div>
+                    <textarea id="input-synopsis" rows="4" class="w-full bg-transparent outline-none text-sm p-1" placeholder="必填，AI 需要根据简介生成大纲"></textarea>
+                </div>
+            </div>
+            
+            <button onclick="goToChapters()" class="w-full bg-orange-500 text-white py-3 rounded-full font-bold shadow-lg hover:bg-orange-600 transition">
+                下一步：生成大纲
+            </button>
+        </div>
+    </div>
+
+    <div id="view-chapters" class="page-view bg-gray-50">
+        <div class="bg-white px-4 py-3 border-b flex items-center sticky top-0 z-10">
+            <button onclick="switchPage('view-create')" class="text-gray-600"><i class="fas fa-chevron-left"></i></button>
+            <h2 class="flex-1 text-center font-bold truncate px-4" id="hub-title">目录大纲</h2>
+            <button onclick="addChapter()" class="text-orange-500"><i class="fas fa-plus"></i></button>
+        </div>
+
+        <div class="p-4 bg-white mb-2 shadow-sm">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-xs text-gray-500">已规划 <span id="chapter-count">0</span> 章</span>
+                <button onclick="aiGenerateOutlines()" class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-bold border border-blue-100 hover:bg-blue-100 transition">
+                    <i class="fas fa-robot mr-1"></i>AI 批量生成大纲
+                </button>
+            </div>
+            <p class="text-xs text-gray-400">点击章节卡片进入写作，AI 将严格按照大纲扩写。</p>
+        </div>
+
+        <div id="chapter-list" class="p-4 space-y-3 overflow-y-auto flex-1 pb-20"></div>
+    </div>
+
+    <div id="view-editor" class="page-view bg-white">
+        <div class="border-b px-4 py-3 flex justify-between items-center bg-white z-20 shadow-sm">
+            <button onclick="switchPage('view-chapters')" class="text-gray-500"><i class="fas fa-chevron-left"></i></button>
+            <div class="text-center">
+                <h2 id="editor-chapter-title" class="font-bold text-sm">第一章</h2>
+                <div class="text-xs text-green-500 flex items-center justify-center gap-1">
+                    <div class="w-1.5 h-1.5 bg-green-500 rounded-full"></div> 大纲已挂载
+                </div>
+            </div>
+            <button onclick="toggleOutlineDrawer()" class="text-orange-500 text-sm">看大纲</button>
+        </div>
+
+        <div id="editor-content" contenteditable="true" class="flex-1 p-5 text-lg leading-loose outline-none overflow-y-auto text-gray-800" placeholder="正文..."></div>
+
+        <div class="border-t p-3 bg-gray-50 flex gap-3 items-center safe-bottom z-20">
+            <button onclick="aiWriteContent()" class="flex-1 bg-gradient-to-r from-orange-500 to-orange-400 text-white py-2.5 rounded-lg font-medium shadow-md flex items-center justify-center hover:from-orange-600 hover:to-orange-500 transition">
+                <i class="fas fa-pen-fancy mr-2"></i> 根据大纲写正文
+            </button>
+        </div>
+
+        <div id="outline-drawer" class="absolute top-14 right-4 w-64 bg-yellow-50 border border-yellow-200 shadow-xl rounded-xl p-4 hidden z-30 transform transition-all">
+            <div class="flex justify-between items-center mb-2">
+                <h4 class="font-bold text-yellow-800 text-xs">当前章节大纲</h4>
+                <button onclick="toggleOutlineDrawer()" class="text-gray-400"><i class="fas fa-times"></i></button>
+            </div>
+            <textarea id="editor-outline-view" class="w-full h-40 bg-transparent text-sm text-gray-700 border-none outline-none resize-none p-1" placeholder="本章大纲..."></textarea>
+            <button onclick="saveCurrentOutline()" class="w-full mt-2 bg-yellow-200 text-yellow-800 text-xs py-1 rounded hover:bg-yellow-300">更新大纲</button>
+        </div>
+    </div>
+
+    <div id="modal-settings" class="hidden fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center sm:p-4">
+        <div class="bg-white w-full sm:max-w-md h-[80vh] sm:h-auto sm:rounded-xl rounded-t-xl flex flex-col shadow-2xl overflow-hidden">
+            <div class="p-4 border-b flex justify-between items-center bg-gray-50">
+                <h3 class="font-bold text-gray-800">模型管理</h3>
+                <button onclick="closeSettings()" class="text-gray-500 p-2"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 bg-gray-50">
+                <div class="mb-6">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block">已保存的模型</label>
+                    <div id="model-list" class="space-y-2"></div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border shadow-sm">
+                    <h4 class="font-bold text-sm mb-3 text-gray-800 border-b pb-2">添加/编辑模型</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs text-gray-500">配置名称</label>
+                            <input id="setting-name" type="text" class="w-full border p-2 rounded text-sm bg-gray-50 focus:bg-white transition" placeholder="给这个配置起个名">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500">API Key</label>
+                            <input id="setting-key" type="password" class="w-full border p-2 rounded text-sm bg-gray-50 focus:bg-white transition" placeholder="sk-...">
+                        </div>
+                        <div class="flex gap-2">
+                            <div class="flex-1">
+                                <label class="text-xs text-gray-500">Base URL</label>
+                                <input id="setting-url" type="text" class="w-full border p-2 rounded text-sm bg-gray-50 focus:bg-white transition" placeholder="https://api.openai.com/v1">
+                            </div>
+                            <div class="w-1/3">
+                                <label class="text-xs text-gray-500">Model Name</label>
+                                <input id="setting-model" type="text" class="w-full border p-2 rounded text-sm bg-gray-50 focus:bg-white transition" placeholder="gpt-4o">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex gap-2">
+                        <button onclick="clearForm()" class="flex-1 py-2 text-xs text-gray-500 border rounded hover:bg-gray-50">清空</button>
+                        <button onclick="saveModelConfig()" class="flex-2 w-full bg-black text-white py-2 rounded text-sm font-bold hover:bg-gray-800">保存配置</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading" class="hidden fixed inset-0 bg-white/90 z-[100] flex flex-col items-center justify-center">
+        <i class="fas fa-circle-notch fa-spin text-4xl text-orange-500 mb-4"></i>
+        <p id="loading-text" class="text-gray-600 font-medium">AI 正在思考...</p>
+    </div>
+
+    <script>
+        const genres = ["玄幻", "都市", "仙侠", "科幻", "悬疑", "同人"];
+        
+        let appState = {
+            models: [], 
+            activeModelId: null, 
+            novel: {
+                title: '',
+                audience: '男频',
+                genre: '玄幻',
+                cheat: '',
+                synopsis: '',
+                chapters: [] 
+            },
+            currentChapterId: null
+        };
+
+        window.onload = () => {
+            loadState();
+            renderGenres();
+            updateHomeModelStatus();
+        };
+
+        // --- 核心校验逻辑 (Updated) ---
+        function goToChapters() {
+            // 1. 获取输入框 DOM
+            const titleInput = document.getElementById('input-title');
+            const cheatInput = document.getElementById('input-cheat');
+            const synInput = document.getElementById('input-synopsis');
+
+            // 2. 取值
+            const title = titleInput.value.trim();
+            const cheat = cheatInput.value.trim();
+            const synopsis = synInput.value.trim();
+            const audience = document.querySelector('input[name="audience"]:checked').value;
+            // genre 由点击事件维护 appState.novel.genre, 默认是玄幻, 一般不为空
+
+            // 3. 校验
+            if(!title) {
+                alert("请先填写【书名】，或使用 AI 帮写生成一个。");
+                titleInput.focus();
+                // 视觉抖动效果
+                document.getElementById('box-title').classList.add('border-red-500');
+                setTimeout(()=>document.getElementById('box-title').classList.remove('border-red-500'), 2000);
+                return;
+            }
+
+            if(!cheat) {
+                alert("请填写【金手指/核心梗】。\nAI 需要知道主角有什么特殊能力才能生成爽文剧情。");
+                cheatInput.focus();
+                document.getElementById('box-cheat').classList.add('border-red-500');
+                setTimeout(()=>document.getElementById('box-cheat').classList.remove('border-red-500'), 2000);
+                return;
+            }
+
+            if(!synopsis) {
+                alert("请填写【全书简介】。\n如果没有简介，AI 无法规划章节大纲。");
+                synInput.focus();
+                document.getElementById('box-synopsis').classList.add('border-red-500');
+                setTimeout(()=>document.getElementById('box-synopsis').classList.remove('border-red-500'), 2000);
+                return;
+            }
+
+            // 4. 全部通过，保存并跳转
+            appState.novel.title = title;
+            appState.novel.cheat = cheat;
+            appState.novel.synopsis = synopsis;
+            appState.novel.audience = audience;
+            
+            saveState();
+            renderChapterList();
+            document.getElementById('hub-title').innerText = appState.novel.title;
+            switchPage('view-chapters');
+        }
+
+        // --- Model Manager ---
+        function renderModelList() {
+            const list = document.getElementById('model-list');
+            list.innerHTML = '';
+            appState.models.forEach(m => {
+                const isActive = m.id === appState.activeModelId;
+                list.innerHTML += `
+                    <div onclick="selectModel('${m.id}')" class="flex items-center justify-between p-3 rounded-lg border cursor-pointer transition ${isActive ? 'bg-orange-50 border-orange-500' : 'bg-white border-gray-200 hover:border-orange-300'}">
+                        <div class="flex items-center gap-3">
+                            <div class="w-4 h-4 rounded-full border flex items-center justify-center ${isActive ? 'border-orange-500' : 'border-gray-300'}">
+                                ${isActive ? '<div class="w-2 h-2 bg-orange-500 rounded-full"></div>' : ''}
+                            </div>
+                            <div><div class="font-bold text-sm text-gray-800">${m.name}</div><div class="text-xs text-gray-400">${m.modelName}</div></div>
+                        </div>
+                        <button onclick="deleteModel('${m.id}', event)" class="text-gray-400 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button>
+                    </div>`;
+            });
+        }
+
+        function selectModel(id) {
+            appState.activeModelId = id;
+            saveState();
+            renderModelList();
+            updateHomeModelStatus();
+        }
+
+        function deleteModel(id, event) {
+            event.stopPropagation();
+            if(appState.models.length <= 1) return alert("至少保留一个模型配置");
+            if(confirm("确定删除吗？")) {
+                appState.models = appState.models.filter(m => m.id !== id);
+                if(appState.activeModelId === id) appState.activeModelId = appState.models[0].id;
+                saveState();
+                renderModelList();
+                updateHomeModelStatus();
+            }
+        }
+
+        function saveModelConfig() {
+            const name = document.getElementById('setting-name').value;
+            const key = document.getElementById('setting-key').value;
+            const url = document.getElementById('setting-url').value;
+            const modelName = document.getElementById('setting-model').value;
+            if(!name || !key || !url || !modelName) return alert("请填写完整信息");
+            const newModel = { id: 'm_' + Date.now(), name, key, url, modelName };
+            appState.models.push(newModel);
+            appState.activeModelId = newModel.id;
+            saveState();
+            renderModelList();
+            updateHomeModelStatus();
+            clearForm();
+        }
+        
+        function clearForm() {
+            document.getElementById('setting-name').value = '';
+            document.getElementById('setting-key').value = '';
+        }
+
+        function updateHomeModelStatus() {
+            const active = appState.models.find(m => m.id === appState.activeModelId);
+            const el = document.getElementById('home-model-name');
+            if(active) { el.innerText = active.name; el.parentElement.classList.remove('hidden'); } 
+            else { el.innerText = "请配置模型"; }
+        }
+
+        async function callAI(userContent, sysContent = "You are a writer.") {
+            const modelConfig = appState.models.find(m => m.id === appState.activeModelId);
+            if(!modelConfig || !modelConfig.key) { openSettings(); throw new Error("请先配置 AI 模型"); }
+            const baseUrl = modelConfig.url.replace(/\/$/, "");
+            const res = await fetch(`${baseUrl}/chat/completions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${modelConfig.key}` },
+                body: JSON.stringify({ model: modelConfig.modelName, messages: [{role:"system", content: sysContent}, {role:"user", content: userContent}], temperature: 0.8 })
+            });
+            if(!res.ok) throw new Error("API 请求失败");
+            const data = await res.json();
+            return data.choices[0].message.content;
+        }
+
+        // --- Business Logic ---
+        function renderGenres() {
+            const c = document.getElementById('genre-container');
+            genres.forEach(g => {
+                c.innerHTML += `<label class="border px-3 py-1 rounded-full text-sm text-gray-500 cursor-pointer hover:bg-orange-50 transition"><input type="radio" name="genre" value="${g}" class="hidden tag-radio" onclick="appState.novel.genre='${g}'">${g}</label>`;
+            });
+        }
+
+        async function aiGenerateOutlines() {
+            showLoading(true, "正在规划前 3 章大纲...");
+            const prompt = `我正在写一本小说。\n【书名】：${appState.novel.title}\n【类型】：${appState.novel.audience} ${appState.novel.genre}\n【金手指】：${appState.novel.cheat}\n【简介】：${appState.novel.synopsis}\n\n请帮我构思接下来的 3 章剧情大纲。格式要求：JSON数组，包含title和outline字段。不要Markdown。`;
+            try {
+                let res = await callAI(prompt);
+                res = res.replace(/```json|```/g, '').trim();
+                const newChapters = JSON.parse(res);
+                let startId = appState.novel.chapters.length + 1;
+                newChapters.forEach((ch, idx) => { appState.novel.chapters.push({ id: startId + idx, title: ch.title, outline: ch.outline, content: '' }); });
+                saveState(); renderChapterList();
+            } catch(e) { alert("出错：" + e.message); } finally { showLoading(false); }
+        }
+
+        function renderChapterList() {
+            const list = document.getElementById('chapter-list');
+            list.innerHTML = '';
+            document.getElementById('chapter-count').innerText = appState.novel.chapters.length;
+            appState.novel.chapters.forEach(ch => {
+                list.innerHTML += `<div onclick="openEditor(${ch.id})" class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 active:scale-95 transition cursor-pointer relative group hover:shadow-md"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-gray-800 group-hover:text-orange-600 transition">${ch.title}</h4>${ch.content.length>50?'<span class="text-xs bg-green-100 text-green-600 px-2 rounded">已写正文</span>':'<span class="text-xs bg-gray-100 text-gray-500 px-2 rounded">待写作</span>'}</div><p class="text-sm text-gray-500 line-clamp-2 bg-gray-50 p-2 rounded">${ch.outline}</p></div>`;
+            });
+        }
+
+        function addChapter() {
+            const id = appState.novel.chapters.length + 1;
+            appState.novel.chapters.push({ id: id, title: `第${id}章`, outline: '点击编辑大纲...', content: '' });
+            renderChapterList();
+        }
+
+        function openEditor(chapterId) {
+            appState.currentChapterId = chapterId;
+            const ch = appState.novel.chapters.find(c => c.id === chapterId);
+            document.getElementById('editor-chapter-title').innerText = ch.title;
+            document.getElementById('editor-content').innerHTML = ch.content;
+            document.getElementById('editor-outline-view').value = ch.outline;
+            switchPage('view-editor');
+        }
+
+        async function aiWriteContent() {
+            const ch = appState.novel.chapters.find(c => c.id === appState.currentChapterId);
+            const sys = `书名《${appState.novel.title}》\n金手指：${appState.novel.cheat}\n本章大纲：${ch.outline}\n请根据大纲扩写正文。`;
+            const usr = `【当前进度】：\n${document.getElementById('editor-content').innerText.slice(-500)}\n\n(继续写作)`;
+            showLoading(true, "AI 正在码字...");
+            try {
+                const newText = await callAI(usr, sys);
+                const ed = document.getElementById('editor-content');
+                ed.innerHTML += `<p>${newText.replace(/\n/g, '<br>')}</p>`;
+                ed.scrollTop = ed.scrollHeight;
+                ch.content = ed.innerHTML; saveState();
+            } catch(e) { alert(e.message); } finally { showLoading(false); }
+        }
+
+        async function aiHelp(type) {
+             showLoading(true, "生成中...");
+             const prompt = `为一本${appState.novel.audience}小说生成${type==='title'?'书名':'简介'}。类型：${appState.novel.genre}。`;
+             try { document.getElementById(`input-${type}`).value = await callAI(prompt); } catch(e) { alert(e.message); }
+             showLoading(false);
+        }
+
+        function saveCurrentOutline() {
+            appState.novel.chapters.find(c => c.id === appState.currentChapterId).outline = document.getElementById('editor-outline-view').value;
+            saveState(); alert("大纲已更新");
+        }
+
+        function switchPage(id) { document.querySelectorAll('.page-view').forEach(e => e.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+        function openSettings() { renderModelList(); document.getElementById('modal-settings').classList.remove('hidden'); }
+        function closeSettings() { document.getElementById('modal-settings').classList.add('hidden'); }
+        function toggleOutlineDrawer() { document.getElementById('outline-drawer').classList.toggle('hidden'); }
+        function showLoading(show, txt) { document.getElementById('loading').classList.toggle('hidden', !show); document.getElementById('loading-text').innerText = txt; }
+        
+        function saveState() { localStorage.setItem('ai_novel_v4_1', JSON.stringify(appState)); }
+        function loadState() {
+            const saved = localStorage.getItem('ai_novel_v4_1');
+            if(saved) {
+                appState = JSON.parse(saved);
+                if(!appState.models) { appState.models = [{id:'default', name:'Demo', key:'', url:'https://api.openai.com/v1', modelName:'gpt-4o-mini'}]; appState.activeModelId='default'; }
+                document.getElementById('input-title').value = appState.novel.title;
+                document.getElementById('input-synopsis').value = appState.novel.synopsis;
+                document.getElementById('input-cheat').value = appState.novel.cheat;
+            }
+        }
+        function clearForm() { document.getElementById('setting-name').value = ''; document.getElementById('setting-key').value = ''; }
+    </script>
+</body>
+</html>
