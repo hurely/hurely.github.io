@@ -50,6 +50,7 @@
         <div>
             <button class="btn" id="runBtn">预览</button>
             <button class="btn" id="clearBtn">清空</button>
+            <button class="btn" id="downloadBtn">下载</button>
         </div>
     </div>
 
@@ -67,7 +68,7 @@
     <script>
         const d=document;
         const $=q=>d.querySelector(q);
-        const code=$('#code'), iframe=$('#preview'), tip=$('#tip'), run=$('#runBtn'), clear=$('#clearBtn');
+        const code=$('#code'), iframe=$('#preview'), tip=$('#tip'), run=$('#runBtn'), clear=$('#clearBtn'), downloadBtn=$('#downloadBtn');
 
         function showTip(txt){
             tip.textContent=txt;
@@ -91,8 +92,36 @@
             showTip('已返回编辑');
         }
 
+        function downloadHTML() {
+            const src = code.value.trim();
+            if (!src) return showTip('代码为空');
+            let fileName = prompt('请输入文件名（含 .html 后缀）', 'index.html');
+            if (!fileName) return;
+            if (!fileName.endsWith('.html')) fileName += '.html';
+            const standalone = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>${fileName.replace('.html', '')}</title>
+  <style>body{margin:40px;font-family:system-ui;background:#fff;color:#222;}</style>
+</head>
+<body>
+${src}
+</body>
+</html>`;
+            const blob = new Blob([standalone], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            URL.revokeObjectURL(url);
+            showTip('已下载 ' + fileName);
+        }
+
         run.onclick=runCode;
         clear.onclick=()=>{ if(confirm('清空？')) code.value=''; };
+        downloadBtn.onclick=downloadHTML;
         d.addEventListener('dblclick',backToEdit);
         d.addEventListener('touchend',(e)=>{
             const t=Date.now();
