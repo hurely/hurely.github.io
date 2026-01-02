@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI 小说 - v6.8 稳定修复版</title>
+    <title>AI 小说 - v6.9 全能设定版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -17,10 +17,11 @@
         .required::after { content: "*"; color: red; margin-left: 4px; }
         .typing-cursor::after { content: '|'; animation: blink 1s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-        .list-item-content { flex: 1; min-width: 0; padding-right: 2.5rem; }
         .badge-status { font-size: 10px; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 4px; }
         .badge-gray { background: #f3f4f6; color: #9ca3af; }
         .badge-green { background: #ecfdf5; color: #059669; }
+        .input-group { background: #f9fafb; padding: 10px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 10px; }
+        .input-label { font-size: 12px; font-weight: bold; color: #374151; margin-bottom: 4px; display: block; }
     </style>
 </head>
 <body>
@@ -33,7 +34,7 @@
             </div>
             <div onclick="startNewBook()" class="mt-4 bg-gradient-to-r from-orange-500 to-orange-400 rounded-2xl p-6 text-white shadow-lg cursor-pointer active:scale-95 transition">
                 <h3 class="font-bold text-xl mb-1"><i class="fas fa-plus-circle mr-2"></i>创建新书</h3>
-                <p class="text-white/80 text-xs">设定 -> 分卷 -> 章节 -> 正文</p>
+                <p class="text-white/80 text-xs">设定 -> 人设 -> 大纲 -> 正文</p>
             </div>
         </div>
         <div class="scroll-content p-4">
@@ -47,31 +48,76 @@
             <button onclick="switchPage('view-home')" class="text-gray-600"><i class="fas fa-chevron-left"></i></button>
             <h2 class="flex-1 text-center font-bold">新书设定</h2>
         </div>
-        <div class="scroll-content p-4 space-y-6">
-            <div><label class="font-bold text-gray-700 block mb-2 text-sm">核心受众</label><div class="flex gap-4"><label class="flex-1 border rounded-lg p-3 text-center"><input type="radio" name="audience" value="男频" class="hidden" checked><span class="text-sm">男频</span></label><label class="flex-1 border rounded-lg p-3 text-center"><input type="radio" name="audience" value="女频" class="hidden"><span class="text-sm">女频</span></label></div></div>
-            <div><label class="font-bold text-gray-700 block mb-2 text-sm">作品类型</label><div class="flex flex-wrap gap-2" id="genre-container"></div></div>
-            <div class="space-y-4">
-                <div class="bg-gray-50 p-3 rounded-xl border"><div class="flex justify-between mb-1"><label class="font-bold text-sm required">书名</label><div class="flex gap-1"><select id="model-select-title" class="text-xs border rounded w-16"></select><button onclick="aiHelp('title','model-select-title')" class="text-xs bg-orange-100 text-orange-600 px-2 rounded">生成</button></div></div><input id="input-title" class="w-full bg-transparent outline-none text-sm" placeholder="输入书名"></div>
-                <div class="bg-gray-50 p-3 rounded-xl border"><div class="flex justify-between mb-1"><label class="font-bold text-sm required">金手指</label><div class="flex gap-1"><select id="model-select-cheat" class="text-xs border rounded w-16"></select><button onclick="aiHelp('cheat','model-select-cheat')" class="text-xs bg-orange-100 text-orange-600 px-2 rounded">生成</button></div></div><textarea id="input-cheat" rows="2" class="w-full bg-transparent outline-none text-sm" placeholder="特殊能力..."></textarea></div>
-                <div class="bg-gray-50 p-3 rounded-xl border"><div class="flex justify-between mb-1"><label class="font-bold text-sm required">简介</label><div class="flex gap-1"><select id="model-select-synopsis" class="text-xs border rounded w-16"></select><button onclick="aiHelp('synopsis','model-select-synopsis')" class="text-xs bg-orange-100 text-orange-600 px-2 rounded">生成</button></div></div><textarea id="input-synopsis" rows="4" class="w-full bg-transparent outline-none text-sm" placeholder="简介..."></textarea></div>
-                <div class="bg-blue-50 p-3 rounded-xl border border-blue-100"><label class="font-bold text-sm text-blue-800">AI 风格指令</label><textarea id="input-system-prompt" rows="2" class="w-full bg-transparent outline-none text-sm text-blue-900" placeholder="例：文风幽默，多短句..."></textarea></div>
+        <div class="scroll-content p-4 space-y-4">
+            <div class="input-group">
+                <label class="input-label">核心受众 & 类型</label>
+                <div class="flex gap-2 mb-2">
+                    <label class="flex-1 border rounded p-2 text-center text-xs bg-white"><input type="radio" name="create-audience" value="男频" checked> 男频</label>
+                    <label class="flex-1 border rounded p-2 text-center text-xs bg-white"><input type="radio" name="create-audience" value="女频"> 女频</label>
+                </div>
+                <div class="flex flex-wrap gap-2" id="create-genre-container"></div>
+            </div>
+
+            <div class="input-group flex gap-3">
+                <div class="flex-1">
+                    <label class="input-label">预计总卷数</label>
+                    <input type="number" id="create-total-volumes" class="w-full bg-white border rounded p-2 text-sm" value="5" placeholder="如 10">
+                </div>
+                <div class="flex-1">
+                    <label class="input-label">每卷预计章数</label>
+                    <input type="number" id="create-chapters-per-vol" class="w-full bg-white border rounded p-2 text-sm" value="20" placeholder="如 50">
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <div class="bg-gray-50 p-3 rounded-xl border">
+                    <div class="flex justify-between mb-1"><label class="font-bold text-sm required">书名</label><div class="flex gap-1"><select id="model-select-create-title" class="text-xs border rounded w-16"></select><button onclick="aiHelp('title','create')" class="text-xs bg-orange-100 text-orange-600 px-2 rounded">生成</button></div></div>
+                    <input id="create-title" class="w-full bg-transparent outline-none text-sm" placeholder="输入书名">
+                </div>
+                
+                <div class="bg-gray-50 p-3 rounded-xl border">
+                    <div class="flex justify-between mb-1"><label class="font-bold text-sm required">主角/人物小传</label><div class="flex gap-1"><select id="model-select-create-char" class="text-xs border rounded w-16"></select><button onclick="aiHelp('char','create')" class="text-xs bg-orange-100 text-orange-600 px-2 rounded">生成</button></div></div>
+                    <textarea id="create-char" rows="3" class="w-full bg-transparent outline-none text-sm" placeholder="姓名、性格、外貌、背景..."></textarea>
+                </div>
+
+                <div class="bg-gray-50 p-3 rounded-xl border">
+                    <div class="flex justify-between mb-1"><label class="font-bold text-sm required">金手指/系统</label><div class="flex gap-1"><select id="model-select-create-cheat" class="text-xs border rounded w-16"></select><button onclick="aiHelp('cheat','create')" class="text-xs bg-orange-100 text-orange-600 px-2 rounded">生成</button></div></div>
+                    <textarea id="create-cheat" rows="2" class="w-full bg-transparent outline-none text-sm" placeholder="独有优势，不仅限于作弊..."></textarea>
+                </div>
+
+                <div class="bg-gray-50 p-3 rounded-xl border">
+                    <div class="flex justify-between mb-1"><label class="font-bold text-sm required">全书简介</label><div class="flex gap-1"><select id="model-select-create-synopsis" class="text-xs border rounded w-16"></select><button onclick="aiHelp('synopsis','create')" class="text-xs bg-orange-100 text-orange-600 px-2 rounded">生成</button></div></div>
+                    <textarea id="create-synopsis" rows="4" class="w-full bg-transparent outline-none text-sm" placeholder="简介..."></textarea>
+                </div>
+
+                <div class="bg-blue-50 p-3 rounded-xl border border-blue-100">
+                    <label class="font-bold text-sm text-blue-800">AI 风格指令</label>
+                    <textarea id="create-system-prompt" rows="2" class="w-full bg-transparent outline-none text-sm text-blue-900" placeholder="例：文风幽默，多短句..."></textarea>
+                </div>
             </div>
         </div>
-        <div class="fixed-footer p-4"><button onclick="createAndGoToOverview()" class="w-full bg-orange-500 text-white py-3 rounded-full font-bold shadow-lg">下一步</button></div>
+        <div class="fixed-footer p-4"><button onclick="submitCreation()" class="w-full bg-orange-500 text-white py-3 rounded-full font-bold shadow-lg">保存并进入大纲</button></div>
     </div>
 
     <div id="view-overview" class="page-view bg-gray-50">
-        <div class="flex-none bg-white px-4 py-3 border-b flex items-center shadow-sm z-10">
+        <div class="flex-none bg-white px-4 py-3 border-b flex items-center shadow-sm z-10 justify-between">
             <button onclick="switchPage('view-home')" class="text-gray-600"><i class="fas fa-chevron-left"></i></button>
-            <h2 class="flex-1 text-center font-bold truncate px-4" id="overview-title">全书架构</h2>
-            <button onclick="addVolume()" class="text-gray-400 text-sm"><i class="fas fa-plus"></i></button>
+            <div class="flex flex-col items-center">
+                <h2 class="font-bold truncate max-w-[150px]" id="overview-title">全书架构</h2>
+                <button onclick="openBookSettings()" class="text-xs text-blue-500 bg-blue-50 px-2 py-0.5 rounded mt-1">
+                    <i class="fas fa-edit mr-1"></i>编辑设定
+                </button>
+            </div>
+            <button onclick="addVolume()" class="text-orange-500 text-sm font-bold"><i class="fas fa-plus mr-1"></i>加卷</button>
         </div>
+        
         <div class="scroll-content p-4">
             <div class="bg-white p-4 rounded-xl shadow-sm mb-4 border border-purple-50">
                 <div class="flex justify-between items-center mb-2"><h3 class="font-bold text-gray-800 text-sm">全书总大纲</h3><div class="flex gap-2"><select id="model-select-total" class="text-xs border rounded w-20"></select><button onclick="aiGenerateTotalOutline()" class="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded">AI 规划</button></div></div>
                 <textarea id="total-outline-input" class="w-full h-32 text-sm bg-gray-50 rounded p-2 border-none outline-none resize-none" placeholder="全书主线..."></textarea>
                 <button onclick="saveTotalOutline()" id="btn-save-outline" class="w-full mt-2 bg-purple-500 text-white text-xs py-2 rounded">保存总大纲</button>
             </div>
+            
             <div class="flex justify-between items-end mb-2 px-1">
                 <span class="text-xs text-gray-500 font-bold">分卷列表</span>
                 <div class="flex gap-2 items-center">
@@ -88,20 +134,18 @@
         <div class="flex-none bg-white px-4 py-3 border-b flex items-center shadow-sm z-10">
             <button onclick="switchPage('view-overview')" class="text-gray-600"><i class="fas fa-chevron-left"></i></button>
             <h2 class="flex-1 text-center font-bold truncate px-4" id="volume-title-header">分卷详情</h2>
-            <button onclick="addChapter()" class="text-gray-400 text-sm"><i class="fas fa-plus"></i></button>
+            <button onclick="addChapter()" class="text-orange-500 text-sm"><i class="fas fa-plus"></i> 加章</button>
         </div>
         <div class="scroll-content p-4">
             <div class="bg-white p-3 rounded-xl shadow-sm mb-4 border-l-4 border-orange-400">
-                <div class="text-xs text-gray-400 mb-1">本卷大纲</div>
-                <p id="current-volume-outline" class="text-sm text-gray-700 leading-relaxed min-h-[20px]">...</p>
+                <div class="text-xs text-gray-400 mb-1">本卷大纲</div><p id="current-volume-outline" class="text-sm text-gray-700 leading-relaxed min-h-[20px]">...</p>
             </div>
-            
             <div class="flex justify-between items-center mb-2">
                 <span class="text-xs text-gray-500">章节列表 (<span id="chapter-count">0</span>)</span>
                 <div class="flex gap-2">
                     <select id="model-select-chapters" class="text-xs border rounded w-20"></select>
-                    <button onclick="aiAddNextChapter()" class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold border border-green-200"><i class="fas fa-plus-circle mr-1"></i>续一章</button>
-                    <button onclick="aiGenerateChapters()" class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-bold"><i class="fas fa-list-ol mr-1"></i>批量</button>
+                    <button onclick="aiAddNextChapter()" class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold border border-green-200">续一章</button>
+                    <button onclick="aiGenerateChapters()" class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-bold">批量</button>
                 </div>
             </div>
             <div id="chapter-list" class="space-y-3 pb-10"></div>
@@ -118,22 +162,14 @@
             <button onclick="toggleOutlineDrawer()" class="text-orange-500 text-sm font-bold">设定</button>
         </div>
         <div id="editor-content" contenteditable="true" class="scroll-content p-5 text-lg leading-loose outline-none text-gray-800" placeholder="正文..." oninput="onEditorInput()"></div>
-        
         <div class="fixed-footer p-3 bg-gray-50 flex flex-col gap-2">
             <div class="flex justify-between items-center px-1 gap-2">
                  <select id="model-select-writer" class="text-xs bg-white border border-gray-300 rounded px-2 h-8 flex-1"></select>
-                 <div class="flex items-center gap-1 bg-white border border-gray-300 rounded px-2 h-8">
-                     <span class="text-[10px] text-gray-400 whitespace-nowrap">目标</span>
-                     <input type="number" id="input-word-goal" value="2500" step="100" class="w-12 text-xs text-center outline-none text-gray-700 font-bold" placeholder="2500">
-                     <span class="text-[10px] text-gray-400 whitespace-nowrap">字</span>
-                 </div>
-                 <button onclick="copyContent()" class="text-xs text-gray-500 bg-white border px-3 h-8 rounded-full active:bg-gray-100 flex items-center justify-center whitespace-nowrap"><i class="fas fa-copy mr-1"></i>复制</button>
+                 <div class="flex items-center gap-1 bg-white border border-gray-300 rounded px-2 h-8"><span class="text-[10px] text-gray-400">目标</span><input type="number" id="input-word-goal" value="2500" step="100" class="w-12 text-xs text-center outline-none text-gray-700 font-bold"><span class="text-[10px] text-gray-400">字</span></div>
+                 <button onclick="copyContent()" class="text-xs text-gray-500 bg-white border px-3 h-8 rounded-full active:bg-gray-100 flex items-center justify-center"><i class="fas fa-copy mr-1"></i>复制</button>
             </div>
-            <button onclick="aiWriteContent()" class="w-full bg-gradient-to-r from-orange-500 to-orange-400 text-white h-10 rounded-lg font-medium shadow-md flex items-center justify-center active:scale-95">
-                <i class="fas fa-pen-fancy mr-2"></i> 流式扩写
-            </button>
+            <button onclick="aiWriteContent()" class="w-full bg-gradient-to-r from-orange-500 to-orange-400 text-white h-10 rounded-lg font-medium shadow-md flex items-center justify-center active:scale-95">流式扩写</button>
         </div>
-
         <div id="outline-drawer" class="absolute top-14 right-4 w-72 bg-yellow-50 border border-yellow-200 shadow-2xl rounded-xl p-4 hidden z-30 flex flex-col gap-4" style="height: 70vh;">
             <div class="flex justify-between items-center border-b border-yellow-200 pb-2"><h4 class="font-bold text-yellow-900 text-sm">写作参考</h4><button onclick="toggleOutlineDrawer()" class="text-gray-400"><i class="fas fa-times"></i></button></div>
             <div class="flex-1 overflow-y-auto">
@@ -144,9 +180,54 @@
         </div>
     </div>
 
+    <div id="modal-edit-book" class="hidden fixed inset-0 bg-black/50 z-[100] flex items-end sm:items-center justify-center sm:p-4">
+        <div class="bg-white w-full sm:max-w-lg h-[90vh] sm:h-auto sm:max-h-[90vh] sm:rounded-xl rounded-t-xl flex flex-col shadow-2xl">
+            <div class="p-4 border-b flex justify-between items-center bg-gray-50">
+                <h3 class="font-bold text-gray-800">编辑作品设定</h3>
+                <button onclick="closeBookSettings()" class="text-gray-500 p-2"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                <div class="input-group">
+                    <label class="input-label">书名</label>
+                    <input id="edit-title" class="w-full border rounded p-2 text-sm">
+                </div>
+                <div class="input-group flex gap-3">
+                    <div class="flex-1"><label class="input-label">总卷数规划</label><input type="number" id="edit-total-volumes" class="w-full border rounded p-2 text-sm"></div>
+                    <div class="flex-1"><label class="input-label">每卷章数</label><input type="number" id="edit-chapters-per-vol" class="w-full border rounded p-2 text-sm"></div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">金手指/系统 <button onclick="aiHelp('cheat','edit')" class="text-xs text-orange-500 float-right">AI 重写</button></label>
+                    <textarea id="edit-cheat" rows="2" class="w-full border rounded p-2 text-sm"></textarea>
+                    <select id="model-select-edit-cheat" class="hidden"></select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">人物小传 <button onclick="aiHelp('char','edit')" class="text-xs text-orange-500 float-right">AI 重写</button></label>
+                    <textarea id="edit-char" rows="3" class="w-full border rounded p-2 text-sm"></textarea>
+                    <select id="model-select-edit-char" class="hidden"></select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">简介 <button onclick="aiHelp('synopsis','edit')" class="text-xs text-orange-500 float-right">AI 重写</button></label>
+                    <textarea id="edit-synopsis" rows="4" class="w-full border rounded p-2 text-sm"></textarea>
+                    <select id="model-select-edit-synopsis" class="hidden"></select>
+                </div>
+                <div class="input-group bg-blue-50 border-blue-200">
+                    <label class="input-label text-blue-800">AI 指令</label>
+                    <textarea id="edit-system-prompt" rows="2" class="w-full border rounded p-2 text-sm"></textarea>
+                </div>
+                <div class="flex justify-between items-center text-xs text-gray-400 mt-2">
+                    <span>* 修改设定后，后续生成将应用新设定</span>
+                    <select id="model-select-edit-generic" class="border rounded p-1"></select>
+                </div>
+            </div>
+            <div class="p-4 border-t bg-gray-50">
+                <button onclick="saveBookSettings()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold shadow">保存修改</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-settings" class="hidden fixed inset-0 bg-black/50 z-[100] flex items-end sm:items-center justify-center sm:p-4">
         <div class="bg-white w-full sm:max-w-md h-[85vh] sm:h-auto sm:rounded-xl rounded-t-xl flex flex-col shadow-2xl">
-            <div class="p-4 border-b flex justify-between items-center bg-gray-50"><h3 class="font-bold text-gray-800">设置与数据</h3><button onclick="closeSettings()" class="text-gray-500 p-2"><i class="fas fa-times"></i></button></div>
+            <div class="p-4 border-b flex justify-between items-center bg-gray-50"><h3 class="font-bold text-gray-800">系统设置</h3><button onclick="closeSettings()" class="text-gray-500 p-2"><i class="fas fa-times"></i></button></div>
             <div class="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-6">
                 <div class="bg-white p-4 rounded-xl border shadow-sm"><h4 class="font-bold text-sm mb-3">数据备份</h4><div class="flex gap-3"><button onclick="exportData()" class="flex-1 bg-green-500 text-white py-2 rounded-lg text-sm font-bold">导出</button><button onclick="triggerImport()" class="flex-1 bg-blue-500 text-white py-2 rounded-lg text-sm font-bold">导入</button><input type="file" id="import-file" class="hidden" accept=".json" onchange="handleFileImport(event)"></div></div>
                 <div><label class="text-xs font-bold text-gray-500 uppercase">已存模型</label><div id="model-list" class="space-y-2 mb-4"></div><div class="bg-white p-4 rounded-xl border shadow-sm"><h4 class="font-bold text-sm mb-3">添加新模型</h4><div class="space-y-3"><input id="setting-name" class="w-full border p-2 rounded text-sm" placeholder="名称"><input id="setting-key" type="password" class="w-full border p-2 rounded text-sm" placeholder="sk-...">
@@ -155,36 +236,160 @@
         </div>
     </div>
     <div id="stream-overlay" class="hidden fixed inset-0 bg-transparent z-[200] flex flex-col items-center justify-end pb-32 pointer-events-none"><div class="bg-gray-800 text-white shadow-xl rounded-full px-6 py-3 flex items-center gap-3 pointer-events-auto"><div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div><span class="text-xs font-bold" id="stream-status">AI 正在输出...</span><button onclick="stopStream()" class="text-xs bg-gray-600 hover:bg-red-500 px-3 py-1 rounded-full ml-2">停止</button></div></div>
-    
-    <div id="json-preview-modal" class="hidden fixed inset-0 bg-black/50 z-[90] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-xl p-4 flex flex-col max-h-[80vh]">
-            <h3 class="font-bold mb-2">AI 处理中...</h3>
-            <div id="json-stream-area" class="flex-1 bg-gray-900 text-green-400 p-3 rounded text-xs overflow-y-auto whitespace-pre-wrap font-mono h-64 border border-gray-300"></div>
-            <div class="mt-4 flex justify-end gap-2">
-                <button onclick="cancelJson()" class="text-gray-500 text-sm px-3">取消</button>
-                <button onclick="finishJsonGeneration()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">确认生成</button>
-            </div>
-        </div>
-    </div>
+    <div id="json-preview-modal" class="hidden fixed inset-0 bg-black/50 z-[90] flex items-center justify-center p-4"><div class="bg-white w-full max-w-lg rounded-xl p-4 flex flex-col max-h-[80vh]"><h3 class="font-bold mb-2">AI 处理中...</h3><div id="json-stream-area" class="flex-1 bg-gray-900 text-green-400 p-3 rounded text-xs overflow-y-auto whitespace-pre-wrap font-mono h-64"></div><div class="mt-4 flex justify-end gap-2"><button onclick="cancelJson()" class="text-gray-500 text-sm px-3">取消</button><button onclick="finishJsonGeneration()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">确认生成</button></div></div></div>
 
     <script>
         const genres = ["玄幻", "都市", "仙侠", "科幻", "悬疑", "同人"];
+        // Book structure upgrade: { ..., charInfo: "", totalVolCount: 10, chaptersPerVol: 20 }
         let appState = { models: [], books: [], activeBookId: null, activeVolumeId: null, currentChapterId: null };
         let abortController = null, streamBuffer = "", jsonTargetType = '';
 
         window.onload = () => { loadState(); renderGenres(); renderBookList(); initModelSelects(); };
 
+        // --- New: Create Logic (with new fields) ---
+        function submitCreation() {
+            // Get values from Create Page
+            const title = document.getElementById('create-title').value.trim();
+            const cheat = document.getElementById('create-cheat').value.trim();
+            const charInfo = document.getElementById('create-char').value.trim();
+            const synopsis = document.getElementById('create-synopsis').value.trim();
+            const sysPrompt = document.getElementById('create-system-prompt').value.trim();
+            const volCount = document.getElementById('create-total-volumes').value || 5;
+            const chPerVol = document.getElementById('create-chapters-per-vol').value || 20;
+            
+            if(!title || !synopsis) return alert("请至少填写书名和简介！");
+
+            const newBook = { 
+                id: Date.now(),
+                title, cheat, charInfo, synopsis, systemPrompt: sysPrompt,
+                totalVolCount: volCount, chaptersPerVol: chPerVol,
+                genre: document.querySelector('input[name="create-audience"]:checked').value + " " + (document.querySelector('input[name="create-genre"]:checked')?.value || ""),
+                audience: document.querySelector('input[name="create-audience"]:checked').value,
+                totalOutline: '', volumes: [] 
+            };
+            appState.books.push(newBook); 
+            appState.activeBookId = newBook.id; 
+            saveState(); 
+            openBookOverview(newBook.id);
+        }
+
+        // --- New: Edit Book Settings Logic ---
+        function openBookSettings() {
+            const b = getActiveBook();
+            if(!b) return;
+            // Fill form
+            document.getElementById('edit-title').value = b.title;
+            document.getElementById('edit-total-volumes').value = b.totalVolCount || 5;
+            document.getElementById('edit-chapters-per-vol').value = b.chaptersPerVol || 20;
+            document.getElementById('edit-cheat').value = b.cheat || "";
+            document.getElementById('edit-char').value = b.charInfo || ""; // New field
+            document.getElementById('edit-synopsis').value = b.synopsis || "";
+            document.getElementById('edit-system-prompt').value = b.systemPrompt || "";
+            
+            // Sync models for edit modal
+            const mSelect = document.getElementById('model-select-edit-generic');
+            mSelect.innerHTML = "";
+            appState.models.forEach(m => {
+                const opt = document.createElement('option'); opt.value=m.id; opt.text=m.name; mSelect.appendChild(opt);
+            });
+            // Link hidden selects to generic one for AI help
+            ['cheat','char','synopsis'].forEach(k => {
+                const s = document.getElementById(`model-select-edit-${k}`);
+                s.innerHTML = mSelect.innerHTML; // Copy options
+            });
+
+            document.getElementById('modal-edit-book').classList.remove('hidden');
+        }
+
+        function closeBookSettings() { document.getElementById('modal-edit-book').classList.add('hidden'); }
+
+        function saveBookSettings() {
+            const b = getActiveBook();
+            b.title = document.getElementById('edit-title').value;
+            b.totalVolCount = document.getElementById('edit-total-volumes').value;
+            b.chaptersPerVol = document.getElementById('edit-chapters-per-vol').value;
+            b.cheat = document.getElementById('edit-cheat').value;
+            b.charInfo = document.getElementById('edit-char').value;
+            b.synopsis = document.getElementById('edit-synopsis').value;
+            b.systemPrompt = document.getElementById('edit-system-prompt').value;
+            
+            saveState();
+            closeBookSettings();
+            // Refresh current view if needed
+            if(document.getElementById('view-overview').classList.contains('active')) {
+                document.getElementById('overview-title').innerText = b.title;
+            }
+            alert("设定已更新！后续生成将应用新参数。");
+        }
+
+        // --- AI Logic Upgrade: Context Aware ---
+        function aiHelp(field, context) { 
+            // context: 'create' or 'edit'
+            // selectId mapping
+            let selectId = context === 'create' ? `model-select-create-${field}` : `model-select-edit-generic`;
+            let targetId = context === 'create' ? `create-${field}` : `edit-${field}`;
+            
+            // Get inputs dynamically based on context
+            const getVal = (id) => document.getElementById(`${context}-${id}`).value;
+            const titleVal = getVal('title');
+            const cheatVal = getVal('cheat');
+            const charVal = context==='create' ? getVal('char') : getVal('char'); // char is new
+            
+            // Audience/Genre handling
+            let aud, gen;
+            if(context === 'create') {
+                aud = document.querySelector('input[name="create-audience"]:checked').value;
+                gen = document.querySelector('input[name="create-genre"]:checked')?.value || '未分类';
+            } else {
+                const b = getActiveBook();
+                aud = b.audience; gen = b.genre;
+            }
+
+            let prompt = "", sys = "你是一个网文大神。";
+            
+            if(field === 'title') {
+                prompt = `生成书名。\n受众：${aud}\n类型：${gen}\n要求：只输出一个书名，不要标点。`;
+            } else if (field === 'cheat') {
+                // Gold Finger logic upgrade
+                prompt = `设计“金手指”：\n书名：${titleVal}\n类型：${aud} ${gen}\n人物小传：${charVal}\n要求：\n1. 必须是主角独有的优势（系统/物品/天赋）。\n2. 能打破常规，制造爽点。\n3. 不要出现“作弊”字眼，要符合网文设定。\n4. 50字以内。`;
+            } else if (field === 'char') {
+                // New Character Prompt
+                prompt = `生成主角人设（人物小传）：\n书名：${titleVal}\n类型：${aud} ${gen}\n要求：包含姓名、性格关键词、外貌特征、简短背景。100字左右。`;
+            } else if (field === 'synopsis') {
+                prompt = `写简介：\n书名：${titleVal}\n类型：${aud} ${gen}\n金手指：${cheatVal}\n主角：${charVal}\n要求：黄金三章风格，极具代入感，200字。`;
+            }
+
+            const target = document.getElementById(targetId);
+            target.value = "";
+            streamAI(prompt, sys, document.getElementById(selectId).value, (c) => target.value += c);
+        }
+
+        // --- AI Logic Upgrade: Volume/Outline Generation ---
+        function aiGenerateTotalOutline() {
+            const b = getActiveBook();
+            const el = document.getElementById('total-outline-input'); el.value = "";
+            // Include volume planning in prompt
+            const p = `写《${b.title}》总大纲。\n简介：${b.synopsis}\n金手指：${b.cheat}\n主角：${b.charInfo}\n【篇幅规划】：预计 ${b.totalVolCount} 卷，每卷约 ${b.chaptersPerVol} 章。\n\n要求：\n1. 规划全书主线剧情走向。\n2. 简要列出每卷的核心冲突。`;
+            streamAI(p, "网文主编", document.getElementById('model-select-total').value, (c)=>el.value+=c, ()=>saveTotalOutline());
+        }
+
+        function aiAddNextVolume() {
+            const currentOutline = document.getElementById('total-outline-input').value;
+            const b = getActiveBook();
+            if(!currentOutline) return alert("请先填写总大纲");
+            const prevVolumes = b.volumes.map(v => v.title + ":" + v.outline).join('\n');
+            // Include chapter count expectation
+            const prompt = `【任务】续写下一卷。\n全书规划：${b.totalVolCount}卷。\n总大纲：${currentOutline}\n已由卷：\n${prevVolumes}\n\n请规划【下一卷】。\n要求：包含卷名和大纲。本卷预计 ${b.chaptersPerVol} 章，请确保大纲内容足够支撑这些章节。\n格式：JSON数组 [{"title":"...","outline":"..."}]`;
+            startJsonStream(prompt, document.getElementById('model-select-volumes').value, 'volume');
+        }
+
         // --- Core UI & Navigation ---
-        function countWords(s) { return s ? s.replace(/\s+/g, '').length : 0; }
-        function getBookTotalWords(b) { if(!b.volumes) return 0; return b.volumes.reduce((a,v)=>a+getVolumeTotalWords(v),0); }
-        function getVolumeTotalWords(v) { if(!v.chapters) return 0; return v.chapters.reduce((a,c)=>a+countWords(c.content),0); }
-        
         function switchPage(id) { 
             document.querySelectorAll('.page-view').forEach(e => e.classList.remove('active')); 
             document.getElementById(id).classList.add('active'); 
             if(id==='view-home') renderBookList();
             if(id==='view-overview') { renderVolumeList(); document.getElementById('total-outline-input').value = getActiveBook().totalOutline||''; }
-            if(id==='view-volume') renderChapterList(); // 注意：view-volume 渲染在 openVolume 中也会触发
+            if(id==='view-volume') renderChapterList();
             if(id==='view-editor') {
                 const c = getActiveBook().volumes.find(v=>v.id===appState.activeVolumeId).chapters.find(c=>c.id===appState.currentChapterId);
                 document.getElementById('editor-word-count').innerText = countWords(c.content)+" 字";
@@ -193,204 +398,106 @@
                 document.getElementById('editor-outline-view').value = c.outline;
             }
         }
-
-        // --- Volume & Chapter Navigation (FIX: Context Loading) ---
         function openBookOverview(id) { appState.activeBookId = parseInt(id); switchPage('view-overview'); }
-        
         function openVolume(volId) {
             appState.activeVolumeId = volId;
             const book = getActiveBook();
             const vol = book.volumes.find(v => v.id === volId);
             if(vol) {
                 document.getElementById('volume-title-header').innerText = vol.title;
-                // 强制更新分卷详情页的大纲显示
-                document.getElementById('current-volume-outline').innerText = vol.outline || "(暂无大纲，请点击上方 'AI 续一章' 自动规划)";
+                document.getElementById('current-volume-outline').innerText = vol.outline || "(暂无大纲)";
                 renderChapterList();
                 switchPage('view-volume');
             }
         }
-
-        function openEditor() { switchPage('view-editor'); }
-
-        // --- Render Functions ---
-        function renderBookList() {
-            document.getElementById('book-list').innerHTML = appState.books.map(b => `
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 relative group">
-                    <div onclick="openBookOverview(${b.id})" class="cursor-pointer">
-                        <div class="flex justify-between items-start list-item-content">
-                            <div><h4 class="font-bold text-gray-800 text-base mb-1">${b.title}</h4><span class="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">${getBookTotalWords(b)}字</span></div>
-                        </div>
-                        <p class="text-xs text-gray-400 line-clamp-2 mt-2">${b.synopsis}</p>
-                    </div>
-                    <button onclick="deleteBook(${b.id}, event)" class="absolute top-4 right-4 text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button>
-                </div>`).reverse().join(''); 
-            document.getElementById('total-books').innerText=appState.books.length;
+        function renderGenres() { document.getElementById('create-genre-container').innerHTML = genres.map(g => `<label class="border p-2 rounded text-center text-xs bg-white cursor-pointer"><input type="radio" name="create-genre" value="${g}" class="hidden"> ${g}</label>`).join(''); }
+        function initModelSelects() { 
+            // Selectors for Create page
+            ['create-title','create-cheat','create-char','create-synopsis'].forEach(k => fillSelect(`model-select-${k}`));
+            // Selectors for Overview/Volume pages
+            ['total','volumes','chapters','writer'].forEach(k => fillSelect(`model-select-${k}`));
+            // Selectors for Edit page
+            fillSelect('model-select-edit-generic');
         }
-        function renderVolumeList() { 
-            document.getElementById('volume-list').innerHTML = getActiveBook().volumes.map(v => `
-                <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm mb-2 flex justify-between items-center group relative">
-                    <div onclick="openVolume(${v.id})" class="flex-1 cursor-pointer list-item-content">
-                        <div class="flex justify-between items-center mb-1"><span class="font-bold text-gray-800">${v.title}</span><div class="flex items-center gap-2"><span class="text-[10px] text-gray-400">${getVolumeTotalWords(v)} 字</span><span class="text-xs bg-gray-100 text-gray-500 px-2 rounded">${v.chapters.length} 章</span></div></div>
-                        <p class="text-xs text-gray-400 truncate">${v.outline}</p>
-                    </div>
-                    <button onclick="deleteVolume(${v.id}, event)" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button>
-                </div>`).join(''); 
-        }
-        function renderChapterList() { 
-            const v = getActiveBook().volumes.find(v=>v.id===appState.activeVolumeId);
-            document.getElementById('chapter-list').innerHTML = v.chapters.map((c, index) => {
-                const words = countWords(c.content);
-                const status = words > 50 ? `<span class="badge-status badge-green">已写 ${words}字</span>` : `<span class="badge-status badge-gray">未完成</span>`;
-                return `
-                <div class="bg-white p-3 rounded-lg border border-gray-200 mb-2 relative group">
-                    <div onclick="appState.currentChapterId=${c.id};openEditor()" class="flex-1 cursor-pointer list-item-content">
-                        <div class="flex justify-between items-center mb-1"><span class="font-bold text-gray-700 text-sm"><span class="text-orange-500 mr-1">第${index+1}章</span>${c.title}</span></div>
-                        <p class="text-xs text-gray-400 truncate mb-1">${c.outline}</p>${status}
-                    </div>
-                    <button onclick="deleteChapter(${c.id}, event)" class="absolute right-2 top-2 text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button>
-                </div>`;
-            }).join(''); 
-            document.getElementById('chapter-count').innerText = v.chapters.length;
+        function fillSelect(id) {
+            const e=document.getElementById(id); if(!e)return;
+            e.innerHTML=appState.models.length?'':'<option>无模型</option>'; 
+            appState.models.forEach(m=>{const o=document.createElement('option');o.value=m.id;o.text=m.name;e.appendChild(o)});
         }
 
-        // --- AI: Smart Add (Refined Prompts) ---
-        function aiAddNextVolume() {
-            const currentOutline = document.getElementById('total-outline-input').value;
-            const b = getActiveBook();
-            if(!currentOutline) return alert("请先填写总大纲");
-            const prevVolumes = b.volumes.map(v => v.title + ":" + v.outline).join('\n');
-            const prompt = `【任务】续写下一卷。\n【全书总大纲】：${currentOutline}\n【已规划分卷】：\n${prevVolumes}\n\n请规划【下一卷】。\n格式要求：JSON数组，包含1个对象: [{"title":"卷名","outline":"大纲"}]`;
-            startJsonStream(prompt, document.getElementById('model-select-volumes').value, 'volume');
-        }
-        function aiAddNextChapter() {
-            const b = getActiveBook();
-            const v = b.volumes.find(v => v.id === appState.activeVolumeId);
-            const prevChapters = v.chapters.map((c,i) => `第${i+1}章 ${c.title}:${c.outline}`).slice(-3).join('\n');
-            const prompt = `【任务】续写下一章。\n书名《${b.title}》\n当前卷：《${v.title}》\n卷大纲：${v.outline}\n【最近章节】：\n${prevChapters}\n\n请规划【下一章】。\n格式要求：JSON数组，包含1个对象: [{"title":"章名","outline":"大纲"}]`;
-            startJsonStream(prompt, document.getElementById('model-select-chapters').value, 'chapter');
-        }
-
-        // --- AI: Batch Generators (Stronger JSON Prompt) ---
-        function aiGenerateVolumes() { 
-            const o=document.getElementById('total-outline-input').value; if(!o) return alert("请先写大纲"); 
-            startJsonStream(`基于大纲拆解分卷JSON：${o}\n格式：[{"title":"卷名","outline":"大纲"}]`, document.getElementById('model-select-volumes').value, 'volume'); 
-        }
-        function aiGenerateChapters() { 
-            const v=getActiveBook().volumes.find(v=>v.id===appState.activeVolumeId); 
-            // 确保传入了卷大纲
-            const volOutline = v.outline || "暂无大纲，请根据标题发挥";
-            startJsonStream(`卷《${v.title}》大纲：${volOutline}。规划5章。\n格式：[{"title":"章名","outline":"大纲"}]`, document.getElementById('model-select-chapters').value, 'chapter'); 
-        }
-
-        // --- ROBUST JSON Parsing (The Fix) ---
-        function startJsonStream(prompt, mid, type) { 
-            jsonTargetType=type; 
-            document.getElementById('json-preview-modal').classList.remove('hidden'); 
-            const v = document.getElementById('json-stream-area'); v.innerText = ""; streamBuffer = ""; 
-            // System Prompt 强制要求纯净输出
-            streamAI(prompt, "你是一个数据接口，只输出纯文本 JSON 数组，禁止使用 Markdown (```json)，禁止任何解释性文字。", mid, (c)=>{
-                streamBuffer+=c; v.innerText+=c; v.scrollTop=v.scrollHeight
-            }, ()=>{
-                document.getElementById('stream-status').innerText="完成";
-            }); 
-        }
-
-        function finishJsonGeneration() {
-            try {
-                let jsonStr = streamBuffer;
-                
-                // 1. 核心修复：更强的正则提取
-                // 寻找最外层的 [ ... ]
-                const firstBracket = jsonStr.indexOf('[');
-                const lastBracket = jsonStr.lastIndexOf(']');
-                
-                if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
-                    jsonStr = jsonStr.substring(firstBracket, lastBracket + 1);
-                } else {
-                    throw new Error("未找到有效的 JSON 数组 []");
-                }
-
-                // 2. 清理可能存在的残留 markdown 标记
-                jsonStr = jsonStr.replace(/```json/g, "").replace(/```/g, "").trim();
-
-                const j = JSON.parse(jsonStr);
-                
-                // 3. 字段兼容性处理 (Mapping)
-                const mappedData = j.map(item => ({
-                    // 兼容 chapter_title, name, title 等常见幻觉字段
-                    title: item.title || item.chapter_title || item.volume_title || item.name || "未命名",
-                    // 兼容 synopsis, summary, outline
-                    outline: item.outline || item.synopsis || item.summary || item.desc || "..."
-                }));
-
-                if(jsonTargetType==='volume') { 
-                    if(getActiveBook().volumes.length===0) getActiveBook().volumes=[]; 
-                    mappedData.forEach((x,i)=>getActiveBook().volumes.push({id:Date.now()+i, title:x.title, outline:x.outline, chapters:[]})); 
-                    renderVolumeList(); 
-                } 
-                else { 
-                    const v=getActiveBook().volumes.find(v=>v.id===appState.activeVolumeId); 
-                    mappedData.forEach((x,i)=>v.chapters.push({id:Date.now()+i, title:x.title, outline:x.outline, content:''})); 
-                    renderChapterList(); 
-                }
-                saveState(); 
-                document.getElementById('json-preview-modal').classList.add('hidden');
-            } catch(e){ 
-                alert("解析失败，请检查AI输出格式是否为标准JSON数组。\n错误信息: " + e.message); 
-            }
-        }
-
-        // --- Other Standard Logic (Same as v6.7) ---
-        function aiWriteContent() {
-            const b = getActiveBook(); const v = b.volumes.find(x=>x.id===appState.activeVolumeId); const c = v.chapters.find(x=>x.id===appState.currentChapterId);
-            const ed = document.getElementById('editor-content');
-            const style = b.systemPrompt ? `\n【风格要求】：${b.systemPrompt}` : "";
-            const wordGoal = document.getElementById('input-word-goal').value || 2500;
-            const sys = `书名《${b.title}》卷《${v.title}》章大纲：${c.outline}${style}\n任务：扩写正文。\n要求：\n1. 目标输出 ${wordGoal} 字（请尽量写长）。\n2. 描写细腻，对话自然。`;
-            const usr = `【当前正文进度】\n${ed.innerText.slice(-500)}\n\n(请继续扩写，目标 ${wordGoal} 字)`;
-            const sp = document.createElement('span'); sp.className="typing-cursor text-gray-600"; ed.appendChild(sp);
-            streamAI(usr, sys, document.getElementById('model-select-writer').value, (c)=>{
-                sp.innerHTML = (sp.innerText + c).replace(/\n/g,'<br>'); 
-                const s = document.querySelector('#view-editor .scroll-content'); s.scrollTop = s.scrollHeight;
-                onEditorInput();
-            }, ()=>{ sp.classList.remove('typing-cursor'); autoSaveContent(); });
-        }
-        function toggleOutlineDrawer() { 
-            const d = document.getElementById('outline-drawer'); d.classList.toggle('hidden');
-            if(!d.classList.contains('hidden')) {
-                const v = getActiveBook().volumes.find(x=>x.id===appState.activeVolumeId);
-                document.getElementById('drawer-volume-outline').innerText = v.outline || "暂无卷大纲";
-            }
-        }
+        // --- Standard Logic (Copied from v6.8) ---
+        function countWords(s) { return s ? s.replace(/\s+/g, '').length : 0; }
+        function getBookTotalWords(b) { if(!b.volumes) return 0; return b.volumes.reduce((a,v)=>a+getVolumeTotalWords(v),0); }
+        function getVolumeTotalWords(v) { if(!v.chapters) return 0; return v.chapters.reduce((a,c)=>a+countWords(c.content),0); }
+        function renderBookList() { document.getElementById('book-list').innerHTML = appState.books.map(b => `<div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 relative group"><div onclick="openBookOverview(${b.id})" class="cursor-pointer"><div class="flex justify-between items-start list-item-content"><div><h4 class="font-bold text-gray-800 text-base mb-1">${b.title}</h4><span class="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">${getBookTotalWords(b)}字</span></div></div><p class="text-xs text-gray-400 line-clamp-2 mt-2">${b.synopsis}</p></div><button onclick="deleteBook(${b.id}, event)" class="absolute top-4 right-4 text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button></div>`).reverse().join(''); document.getElementById('total-books').innerText=appState.books.length; }
+        function renderVolumeList() { document.getElementById('volume-list').innerHTML = getActiveBook().volumes.map(v => `<div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm mb-2 flex justify-between items-center group relative"><div onclick="openVolume(${v.id})" class="flex-1 cursor-pointer list-item-content"><div class="flex justify-between items-center mb-1"><span class="font-bold text-gray-800">${v.title}</span><div class="flex items-center gap-2"><span class="text-[10px] text-gray-400">${getVolumeTotalWords(v)} 字</span><span class="text-xs bg-gray-100 text-gray-500 px-2 rounded">${v.chapters.length} 章</span></div></div><p class="text-xs text-gray-400 truncate">${v.outline}</p></div><button onclick="deleteVolume(${v.id}, event)" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button></div>`).join(''); }
+        function renderChapterList() { const v = getActiveBook().volumes.find(v=>v.id===appState.activeVolumeId); document.getElementById('chapter-list').innerHTML = v.chapters.map((c, index) => { const words = countWords(c.content); const status = words > 50 ? `<span class="badge-status badge-green">已写 ${words}字</span>` : `<span class="badge-status badge-gray">未完成</span>`; return `<div class="bg-white p-3 rounded-lg border border-gray-200 mb-2 relative group"><div onclick="appState.currentChapterId=${c.id};openEditor()" class="flex-1 cursor-pointer list-item-content"><div class="flex justify-between items-center mb-1"><span class="font-bold text-gray-700 text-sm"><span class="text-orange-500 mr-1">第${index+1}章</span>${c.title}</span></div><p class="text-xs text-gray-400 truncate mb-1">${c.outline}</p>${status}</div><button onclick="deleteChapter(${c.id}, event)" class="absolute right-2 top-2 text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button></div>`; }).join(''); document.getElementById('chapter-count').innerText = v.chapters.length; }
         
-        // ... (Remaining Helper functions from v6.7: streamAI, stopStream, cancelJson, aiHelp, saveTotalOutline, aiGenerateTotalOutline, delete/save functions are identical)
-        // For brevity, ensuring all necessary glue code is present:
+        function aiGenerateVolumes() { const o=document.getElementById('total-outline-input').value; if(!o) return alert("请先写大纲"); startJsonStream(`基于大纲拆解分卷JSON：${o}\n格式：[{"title":"卷名","outline":"大纲"}]`, document.getElementById('model-select-volumes').value, 'volume'); }
+        function aiGenerateChapters() { const v=getActiveBook().volumes.find(v=>v.id===appState.activeVolumeId); const volOutline = v.outline || "暂无大纲"; startJsonStream(`卷《${v.title}》大纲：${volOutline}。规划5章。\n格式：[{"title":"章名","outline":"大纲"}]`, document.getElementById('model-select-chapters').value, 'chapter'); }
+        function aiAddNextChapter() { const b = getActiveBook(); const v = b.volumes.find(v => v.id === appState.activeVolumeId); const prevChapters = v.chapters.map((c,i) => `第${i+1}章 ${c.title}:${c.outline}`).slice(-3).join('\n'); const prompt = `【任务】续写下一章。\n书名《${b.title}》\n当前卷：《${v.title}》\n卷大纲：${v.outline}\n【最近章节】：\n${prevChapters}\n\n请规划【下一章】。\n格式要求：JSON数组，包含1个对象: [{"title":"章名","outline":"大纲"}]`; startJsonStream(prompt, document.getElementById('model-select-chapters').value, 'chapter'); }
+        function aiWriteContent() { const b = getActiveBook(); const v = b.volumes.find(x=>x.id===appState.activeVolumeId); const c = v.chapters.find(x=>x.id===appState.currentChapterId); const ed = document.getElementById('editor-content'); const style = b.systemPrompt ? `\n【风格要求】：${b.systemPrompt}` : ""; const wordGoal = document.getElementById('input-word-goal').value || 2500; const sys = `书名《${b.title}》卷《${v.title}》章大纲：${c.outline}${style}\n任务：扩写正文。\n要求：\n1. 目标输出 ${wordGoal} 字（请尽量写长）。\n2. 描写细腻，对话自然。`; const usr = `【当前正文进度】\n${ed.innerText.slice(-500)}\n\n(请继续扩写，目标 ${wordGoal} 字)`; const sp = document.createElement('span'); sp.className="typing-cursor text-gray-600"; ed.appendChild(sp); streamAI(usr, sys, document.getElementById('model-select-writer').value, (c)=>{ sp.innerHTML = (sp.innerText + c).replace(/\n/g,'<br>'); const s = document.querySelector('#view-editor .scroll-content'); s.scrollTop = s.scrollHeight; onEditorInput(); }, ()=>{ sp.classList.remove('typing-cursor'); autoSaveContent(); }); }
+
         function deleteBook(id, e) { e.stopPropagation(); if(confirm("确定删除本书？")) { appState.books=appState.books.filter(b=>b.id!==id); saveState(); renderBookList(); } }
         function deleteVolume(id, e) { e.stopPropagation(); if(confirm("确定删除本卷？")) { const b=getActiveBook(); b.volumes=b.volumes.filter(v=>v.id!==id); saveState(); renderVolumeList(); } }
         function deleteChapter(id, e) { e.stopPropagation(); if(confirm("确定删除本章？")) { const v=getActiveBook().volumes.find(x=>x.id===appState.activeVolumeId); v.chapters=v.chapters.filter(c=>c.id!==id); saveState(); renderChapterList(); } }
         function saveTotalOutline() { getActiveBook().totalOutline = document.getElementById('total-outline-input').value; saveState(); alert("已保存"); }
         function onEditorInput() { autoSaveContent(); document.getElementById('editor-word-count').innerText = countWords(document.getElementById('editor-content').innerText) + " 字"; }
         function copyContent() { navigator.clipboard.writeText(document.getElementById('editor-content').innerText).then(()=>alert("已复制")); }
+        function openEditor() { switchPage('view-editor'); }
         function saveAndExitEditor() { autoSaveContent(); switchPage('view-volume'); }
         function autoSaveContent() { getActiveBook().volumes.find(v=>v.id===appState.activeVolumeId).chapters.find(c=>c.id===appState.currentChapterId).content = document.getElementById('editor-content').innerHTML; saveState(); }
         function saveCurrentOutline() { getActiveBook().volumes.find(v=>v.id===appState.activeVolumeId).chapters.find(c=>c.id===appState.currentChapterId).outline = document.getElementById('editor-outline-view').value; saveState(); alert("大纲更新"); }
-        function startNewBook() { ['input-title','input-cheat','input-synopsis','input-system-prompt'].forEach(id=>document.getElementById(id).value=''); switchPage('view-create'); }
-        function addVolume() { getActiveBook().volumes.push({id:Date.now(), title:'新卷', outline:'', chapters:[]}); saveState(); renderVolumeList(); }
-        function addChapter() { getActiveBook().volumes.find(v=>v.id===appState.activeVolumeId).chapters.push({id:Date.now(), title:'新章', outline:'', content:''}); saveState(); renderChapterList(); }
-        function createAndGoToOverview() {
-            const title = document.getElementById('input-title').value.trim();
-            const cheat = document.getElementById('input-cheat').value.trim();
-            const synopsis = document.getElementById('input-synopsis').value.trim();
-            const sysPrompt = document.getElementById('input-system-prompt').value.trim();
-            if(!title || !synopsis) return alert("请填写完整");
-            const newBook = { id: Date.now(), title, cheat, synopsis, systemPrompt: sysPrompt, genre: document.querySelector('input[name="genre"]:checked')?.value||'玄幻', audience: document.querySelector('input[name="audience"]:checked').value, totalOutline: '', volumes: [] };
-            appState.books.push(newBook); appState.activeBookId = newBook.id; saveState(); openBookOverview(newBook.id);
-        }
+        function toggleOutlineDrawer() { const d = document.getElementById('outline-drawer'); d.classList.toggle('hidden'); if(!d.classList.contains('hidden')) { const v = getActiveBook().volumes.find(x=>x.id===appState.activeVolumeId); document.getElementById('drawer-volume-outline').innerText = v.outline || "暂无卷大纲"; } }
+        function startNewBook() { ['create-title','create-cheat','create-char','create-synopsis','create-system-prompt'].forEach(id=>document.getElementById(id).value=''); switchPage('view-create'); }
         function getActiveBook() { return appState.books.find(b => b.id === appState.activeBookId); }
-        function saveState() { localStorage.setItem('ai_novel_v6_8', JSON.stringify(appState)); }
-        function loadState() { const s=localStorage.getItem('ai_novel_v6_8')||localStorage.getItem('ai_novel_v6_7'); if(s){appState=JSON.parse(s); if(!localStorage.getItem('ai_novel_v6_8')) saveState();} if(!appState.models)appState.models=[]; if(!appState.books)appState.books=[]; }
-        function renderGenres() { document.getElementById('genre-container').innerHTML = genres.map(g => `<label class="border px-3 py-1 rounded-full text-sm text-gray-500 cursor-pointer hover:bg-orange-50"><input type="radio" name="genre" value="${g}" class="hidden tag-radio">${g}</label>`).join(''); }
-        function initModelSelects() { ['title','cheat','synopsis','total','volumes','chapters','writer'].forEach(k => { const e=document.getElementById('model-select-'+k); e.innerHTML=appState.models.length?'':'<option>无模型</option>'; appState.models.forEach(m=>{const o=document.createElement('option');o.value=m.id;o.text=m.name;e.appendChild(o)}) }); }
+        function saveState() { localStorage.setItem('ai_novel_v6_9', JSON.stringify(appState)); }
+        function loadState() {
+            const s = localStorage.getItem('ai_novel_v6_9');
+            if(s) { appState = JSON.parse(s); }
+            else { 
+                const old = localStorage.getItem('ai_novel_v6_8')||localStorage.getItem('ai_novel_v6_7'); 
+                if(old) { 
+                    appState = JSON.parse(old); 
+                    // Migration: Ensure new fields exist
+                    appState.books.forEach(b => {
+                        if(!b.charInfo) b.charInfo = "";
+                        if(!b.totalVolCount) b.totalVolCount = 5;
+                        if(!b.chaptersPerVol) b.chaptersPerVol = 20;
+                    });
+                    saveState(); 
+                    alert("升级到 v6.9 (支持编辑设定)"); 
+                } 
+            }
+            if(!appState.models) appState.models = []; if(!appState.books) appState.books = [];
+        }
+        
+        async function streamAI(prompt, systemPrompt, modelId, onChunk, onDone) {
+            const m = appState.models.find(x => x.id === modelId); if(!m) return alert("请配置模型");
+            document.getElementById('stream-overlay').classList.remove('hidden'); abortController = new AbortController();
+            try {
+                const res = await fetch(`${m.url.replace(/\/$/, "")}/chat/completions`, { method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${m.key}`}, body:JSON.stringify({model:m.modelName, messages:[{role:"system",content:systemPrompt},{role:"user",content:prompt}], temperature:0.7, stream:true}), signal:abortController.signal });
+                const reader = res.body.getReader(); const decoder = new TextDecoder(); let fullText="";
+                while(true) { const {done, value} = await reader.read(); if(done) break; const lines = decoder.decode(value, {stream:true}).split('\n'); for(const line of lines) { if(line.startsWith('data: ')) { const jsonStr = line.slice(6); if(jsonStr==='[DONE]') return; try { const t = JSON.parse(jsonStr).choices[0].delta.content||""; fullText+=t; onChunk(t, fullText); } catch(e){} } } }
+                if(onDone) onDone(fullText);
+            } catch(e){ if(e.name!=='AbortError') alert(e.message); } finally { document.getElementById('stream-overlay').classList.add('hidden'); abortController=null; }
+        }
+        function stopStream() { if(abortController) abortController.abort(); }
+        function startJsonStream(p, mid, t) { jsonTargetType=t; document.getElementById('json-preview-modal').classList.remove('hidden'); document.getElementById('json-stream-area').innerText=""; streamBuffer=""; streamAI(p, "只输出JSON，不要markdown", mid, (c)=>{streamBuffer+=c; document.getElementById('json-stream-area').innerText+=c; document.getElementById('json-stream-area').scrollTop=9999}, ()=>{}); }
+        function finishJsonGeneration() {
+            try {
+                let jsonStr = streamBuffer;
+                const firstBracket = jsonStr.indexOf('['); const lastBracket = jsonStr.lastIndexOf(']');
+                if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) { jsonStr = jsonStr.substring(firstBracket, lastBracket + 1); } else { throw new Error("未找到 []"); }
+                jsonStr = jsonStr.replace(/```json/g, "").replace(/```/g, "").trim();
+                const j = JSON.parse(jsonStr);
+                const mappedData = j.map(item => ({ title: item.title || item.chapter_title || item.volume_title || "未命名", outline: item.outline || item.synopsis || "..." }));
+                if(jsonTargetType==='volume') { if(getActiveBook().volumes.length===0) getActiveBook().volumes=[]; mappedData.forEach((x,i)=>getActiveBook().volumes.push({id:Date.now()+i, title:x.title, outline:x.outline, chapters:[]})); renderVolumeList(); } 
+                else { const v=getActiveBook().volumes.find(v=>v.id===appState.activeVolumeId); mappedData.forEach((x,i)=>v.chapters.push({id:Date.now()+i, title:x.title, outline:x.outline, content:''})); renderChapterList(); }
+                saveState(); document.getElementById('json-preview-modal').classList.add('hidden');
+            } catch(e){ alert("解析失败: " + e.message); }
+        }
+        function cancelJson() { document.getElementById('json-preview-modal').classList.add('hidden'); }
         function openSettings() { document.getElementById('modal-settings').classList.remove('hidden'); renderModelList(); }
         function closeSettings() { document.getElementById('modal-settings').classList.add('hidden'); initModelSelects(); }
         function renderModelList() { document.getElementById('model-list').innerHTML = appState.models.map(m=>`<div class="flex justify-between p-2 bg-gray-50 border mb-1"><span>${m.name}</span><button onclick="deleteModel('${m.id}')" class="text-red-500">删</button></div>`).join(''); }
@@ -399,29 +506,6 @@
         function exportData() { const blob = new Blob([JSON.stringify(appState)], {type: "application/json"}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `novel_backup_${Date.now()}.json`; a.click(); }
         function triggerImport() { document.getElementById('import-file').click(); }
         function handleFileImport(e) { const r = new FileReader(); r.onload = (ev) => { try { appState = JSON.parse(ev.target.result); saveState(); location.reload(); } catch(err){alert("失败");} }; r.readAsText(e.target.files[0]); }
-        function cancelJson() { document.getElementById('json-preview-modal').classList.add('hidden'); }
-        async function streamAI(prompt, systemPrompt, modelId, onChunk, onDone) {
-            const m = appState.models.find(x => x.id === modelId);
-            if(!m) return alert("请配置模型");
-            document.getElementById('stream-overlay').classList.remove('hidden');
-            abortController = new AbortController();
-            try {
-                const res = await fetch(`${m.url.replace(/\/$/, "")}/chat/completions`, {
-                    method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${m.key}`},
-                    body:JSON.stringify({model:m.modelName, messages:[{role:"system",content:systemPrompt},{role:"user",content:prompt}], temperature:0.7, stream:true}), signal:abortController.signal
-                });
-                const reader = res.body.getReader(); const decoder = new TextDecoder(); let fullText="";
-                while(true) {
-                    const {done, value} = await reader.read(); if(done) break;
-                    const lines = decoder.decode(value, {stream:true}).split('\n');
-                    for(const line of lines) { if(line.startsWith('data: ')) { const jsonStr = line.slice(6); if(jsonStr==='[DONE]') return; try { const t = JSON.parse(jsonStr).choices[0].delta.content||""; fullText+=t; onChunk(t, fullText); } catch(e){} } }
-                }
-                if(onDone) onDone(fullText);
-            } catch(e){ if(e.name!=='AbortError') alert(e.message); } finally { document.getElementById('stream-overlay').classList.add('hidden'); abortController=null; }
-        }
-        function stopStream() { if(abortController) abortController.abort(); }
-        function aiHelp(f, sid) { const t=document.getElementById('input-'+f); t.value=""; streamAI(`生成${f}...`, "网文大神", document.getElementById(sid).value, (c)=>t.value+=c); }
-        function aiGenerateTotalOutline() { const b=getActiveBook(); const el=document.getElementById('total-outline-input'); el.value=""; streamAI(`写《${b.title}》总大纲`, "网文主编", document.getElementById('model-select-total').value, (c)=>el.value+=c, ()=>saveTotalOutline()); }
     </script>
 </body>
 </html>
