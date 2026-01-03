@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 小说创作台 - PC 路由版 v6.16</title>
+    <title>AI 小说创作台 - v6.17 可编辑标题版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -47,13 +47,13 @@
 
 <div id="app-container">
     <div id="sidebar">
-        <div class="sidebar-header"><span><i class="fas fa-rocket mr-2 text-orange-500"></i>AI 创作台 v6.16</span><button onclick="openSettings()" class="text-gray-400 hover:text-white text-sm"><i class="fas fa-cog"></i></button></div>
+        <div class="sidebar-header"><span><i class="fas fa-rocket mr-2 text-orange-500"></i>AI 创作台 v6.17</span><button onclick="openSettings()" class="text-gray-400 hover:text-white text-sm"><i class="fas fa-cog"></i></button></div>
         <div class="p-2 border-b border-gray-700">
             <div onclick="switchPage('view-home')" class="sidebar-item" id="nav-home"><i class="fas fa-home w-6 text-center"></i> 书架首页</div>
             <div onclick="startNewBook()" class="sidebar-item text-orange-400 hover:text-orange-300"><i class="fas fa-plus-circle w-6 text-center"></i> 新建作品</div>
         </div>
         <div id="sidebar-tree-container" class="flex-1 overflow-y-auto p-2 hidden"><div class="text-xs font-bold text-gray-500 uppercase px-2 mb-2 mt-2">当前目录</div><div id="sidebar-tree-content" class="space-y-1"></div></div>
-        <div class="p-4 text-xs text-gray-500 border-t border-gray-700">Feature: URL Routing</div>
+        <div class="p-4 text-xs text-gray-500 border-t border-gray-700">Feature: Editable Titles</div>
     </div>
 
     <div id="main-stage">
@@ -88,7 +88,14 @@
         </div>
 
         <div id="view-editor" class="page-view">
-            <div class="editor-paper-container scroll-content" onclick="document.getElementById('editor-content').focus()"><div class="editor-paper"><div class="mb-6 border-b pb-4"><h2 id="editor-chapter-title" class="text-2xl font-bold text-gray-800">章节标题</h2></div><div id="editor-content" contenteditable="true" class="text-lg leading-loose outline-none text-gray-800 min-h-[600px] empty:before:content-[attr(placeholder)]" placeholder="开始创作正文..." oninput="onEditorInput()"></div></div></div>
+            <div class="editor-paper-container scroll-content" onclick="document.getElementById('editor-content').focus()">
+                <div class="editor-paper">
+                    <div class="mb-6 border-b pb-4">
+                        <input type="text" id="editor-chapter-title" class="text-2xl font-bold text-gray-800 w-full outline-none border-none placeholder-gray-300 bg-transparent" placeholder="输入章节标题" oninput="updateChapterTitle()">
+                    </div>
+                    <div id="editor-content" contenteditable="true" class="text-lg leading-loose outline-none text-gray-800 min-h-[600px] empty:before:content-[attr(placeholder)]" placeholder="开始创作正文..." oninput="onEditorInput()"></div>
+                </div>
+            </div>
             <div class="editor-right-panel">
                 <div class="p-4 border-b bg-gray-50 flex justify-between items-center"><span class="font-bold text-gray-700 text-sm">辅助工具</span><button onclick="saveAndExitEditor()" class="text-gray-500 hover:text-gray-800"><i class="fas fa-times"></i></button></div>
                 <div class="flex-1 overflow-y-auto p-4 space-y-4">
@@ -118,6 +125,21 @@
         initModelSelects(); 
         loadRouteFromUrl(); // 核心：启动时读取路由
     };
+
+    // --- 新增：实时更新标题 ---
+    function updateChapterTitle() {
+        const val = document.getElementById('editor-chapter-title').value;
+        if(appState.activeBookId && appState.activeVolumeId && appState.currentChapterId) {
+            const book = getActiveBook();
+            const vol = book.volumes.find(v => v.id === appState.activeVolumeId);
+            const ch = vol.chapters.find(c => c.id === appState.currentChapterId);
+            if(ch) {
+                ch.title = val;
+                saveState();
+                updateSidebar(); // 实时刷新侧边栏
+            }
+        }
+    }
 
     // --- 路由核心逻辑 ---
     function syncUrlState() {
@@ -328,7 +350,8 @@
         }
         else if(id==='view-editor') {
             const c = getActiveBook().volumes.find(v=>v.id===appState.activeVolumeId).chapters.find(c=>c.id===appState.currentChapterId);
-            document.getElementById('editor-chapter-title').innerText = c.title;
+            // 改为设置 value
+            document.getElementById('editor-chapter-title').value = c.title;
             document.getElementById('editor-content').innerHTML = c.content||'';
             document.getElementById('editor-outline-view').value = c.outline;
             document.getElementById('drawer-volume-outline').innerText = getActiveBook().volumes.find(v=>v.id===appState.activeVolumeId).outline || "暂无本卷大纲";
@@ -362,7 +385,7 @@
         else {
             const mobile = localStorage.getItem('ai_novel_v6_13');
             if(mobile) { appState = JSON.parse(mobile); saveState(); console.log("Migrated from Mobile v6.13"); } 
-            else { const oldPc = localStorage.getItem('ai_novel_pc_v6_15') || localStorage.getItem('ai_novel_pc_v6_14'); if(oldPc) { appState = JSON.parse(oldPc); saveState(); alert("数据已升级到 v6.16 (支持路由)"); } }
+            else { const oldPc = localStorage.getItem('ai_novel_pc_v6_15') || localStorage.getItem('ai_novel_pc_v6_14'); if(oldPc) { appState = JSON.parse(oldPc); saveState(); alert("数据已升级到 v6.17 (可编辑标题)"); } }
         }
         if(!appState.models) appState.models = []; if(!appState.books) appState.books = []; if(!appState.expandedVolumeIds) appState.expandedVolumeIds = [];
     }
