@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI 小说 - v7.3 纯净路由版</title>
+    <title>AI 小说 - v7.4 纯净本地路由版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -16,22 +16,22 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .required::after { content: "*"; color: red; margin-left: 4px; }
         .typing-cursor::after { content: '|'; animation: blink 1s infinite; }
+        .badge-status { font-size: 10px; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 4px; }
+        .badge-gray { background: #f3f4f6; color: #9ca3af; }
+        .badge-green { background: #ecfdf5; color: #059669; }
         
-        /* UI Components */
         .input-group { background: #fff; padding: 12px; border-radius: 12px; border: 1px solid #f3f4f6; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
         .input-label { font-size: 13px; font-weight: bold; color: #374151; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
         .radio-card-group { display: flex; gap: 8px; }
         .radio-card { flex: 1; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; text-align: center; font-size: 13px; color: #6b7280; cursor: pointer; transition: all 0.2s; background: #f9fafb; }
+        .radio-card input { display: none; }
         .radio-card:has(input:checked) { background: #FFF7E6; border-color: #FF9900; color: #B45309; font-weight: bold; }
         .tag-container { display: flex; flex-wrap: wrap; gap: 6px; }
         .tag-item { font-size: 12px; padding: 4px 10px; border: 1px solid #e5e7eb; border-radius: 20px; color: #6b7280; cursor: pointer; background: white; }
         .tag-item:has(input:checked) { background: #FFF7E6; border-color: #FF9900; color: #B45309; }
-        .list-item-content { flex: 1; min-width: 0; padding-right: 2.5rem; }
         .outline-collapsed { height: 80px; overflow: hidden; }
         .outline-expanded { height: auto; min-height: 200px; }
-        .badge-status { font-size: 10px; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 4px; }
-        .badge-gray { background: #f3f4f6; color: #9ca3af; }
-        .badge-green { background: #ecfdf5; color: #059669; }
+        .list-item-content { flex: 1; min-width: 0; padding-right: 2.5rem; }
     </style>
 </head>
 <body>
@@ -44,7 +44,7 @@
             </div>
             <div onclick="startNewBook()" class="mt-4 bg-gradient-to-r from-orange-500 to-orange-400 rounded-2xl p-6 text-white shadow-lg cursor-pointer active:scale-95 transition">
                 <h3 class="font-bold text-xl mb-1"><i class="fas fa-plus-circle mr-2"></i>创建新书</h3>
-                <p class="text-white/80 text-xs">设定 -> 人设 -> 大纲 -> 正文</p>
+                <p class="text-white/80 text-xs">设定 -> 分卷 -> 章节 -> 正文</p>
             </div>
         </div>
         <div class="scroll-content p-4">
@@ -59,7 +59,10 @@
             <h2 class="flex-1 text-center font-bold">新书设定</h2>
         </div>
         <div class="scroll-content p-4">
-            <div class="input-group"><label class="input-label">核心受众</label><div class="radio-card-group"><label class="radio-card"><input type="radio" name="create-audience" value="男频" checked> 👦 男频</label><label class="radio-card"><input type="radio" name="create-audience" value="女频"> 👧 女频</label></div></div>
+            <div class="input-group">
+                <label class="input-label">核心受众</label>
+                <div class="radio-card-group"><label class="radio-card"><input type="radio" name="create-audience" value="男频" checked> 👦 男频</label><label class="radio-card"><input type="radio" name="create-audience" value="女频"> 👧 女频</label></div>
+            </div>
             <div class="input-group"><label class="input-label">作品类型</label><div class="tag-container" id="create-genre-container"></div></div>
             <div class="input-group"><label class="input-label">篇幅规划</label><div class="flex gap-3"><div class="flex-1"><span class="text-xs text-gray-400 block mb-1">预计卷数</span><input type="number" id="create-total-volumes" class="w-full bg-gray-50 border rounded p-2 text-sm" value="5"></div><div class="flex-1"><span class="text-xs text-gray-400 block mb-1">每卷章数</span><input type="number" id="create-chapters-per-vol" class="w-full bg-gray-50 border rounded p-2 text-sm" value="60"></div></div></div>
             <div class="input-group"><div class="input-label"><span class="required">书名</span><div class="flex gap-1"><select id="model-select-create-title" class="text-xs border rounded w-16 font-normal"></select><button onclick="aiHelp('title','create')" class="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded font-normal">生成</button></div></div><input id="create-title" class="w-full bg-transparent outline-none text-sm border-b pb-2" placeholder="输入书名"></div>
@@ -152,18 +155,17 @@
         let appState = { models: [], books: [], activeBookId: null, activeVolumeId: null, currentChapterId: null };
         let abortController = null, streamBuffer = "", jsonTargetType = '';
 
-        // --- Init ---
         window.onload = () => { 
-            loadState(); // Universal Recovery
+            loadState(); // 1. 先加载数据
             renderGenres(); 
             initModelSelects(); 
-            initRouter(); 
+            initRouter(); // 2. 再处理路由
         };
 
-        // --- Router & Deep Linking ---
+        // --- 1. Router & Deep Linking (FIXED) ---
         function initRouter() {
             window.addEventListener('popstate', handleRoute);
-            handleRoute(); 
+            handleRoute(); // Initial check
         }
 
         function handleRoute() {
@@ -173,7 +175,7 @@
             const chId = params.get('ch');
             const view = params.get('view');
 
-            // View Guard: Editor -> Volume -> Overview -> Home
+            // 路由判断逻辑
             if (chId && volId && bookId) {
                 appState.activeBookId = parseInt(bookId);
                 appState.activeVolumeId = parseInt(volId);
@@ -211,7 +213,7 @@
                 return;
             }
             
-            // Default Home
+            // 默认首页
             renderBookList();
             switchView('view-home');
         }
@@ -227,7 +229,7 @@
             document.getElementById(id).classList.add('active');
         }
 
-        // --- Render Helpers (Decoupled) ---
+        // --- Render Helpers ---
         function renderOverviewView() {
             renderVolumeList(); 
             document.getElementById('total-outline-input').value = getActiveBook().totalOutline||'';
@@ -263,6 +265,7 @@
             document.getElementById('edit-char').value=b.charInfo||""; 
             document.getElementById('edit-synopsis').value=b.synopsis||""; 
             document.getElementById('edit-system-prompt').value=b.systemPrompt||""; 
+            
             const ms=document.getElementById('model-select-edit-generic'); ms.innerHTML=""; 
             appState.models.forEach(m=>{const o=document.createElement('option');o.value=m.id;o.text=m.name;ms.appendChild(o)}); 
             ['title','cheat','char','synopsis'].forEach(k=>{const s=document.getElementById(`model-select-edit-${k}`);if(s)s.innerHTML=ms.innerHTML;});
@@ -280,23 +283,29 @@
 
         // --- Data Logic (Universal Recovery) ---
         function loadState() {
-            const currentKey = 'ai_novel_v7_3';
+            // Priority: v7.4 -> v7.3 -> v7.2 -> ... -> v6
+            const currentKey = 'ai_novel_v7_4';
             const saved = localStorage.getItem(currentKey);
+            
             if (saved) { 
                 appState = JSON.parse(saved); 
             } else {
-                // Scan all previous versions including failed 7.1/7.2
+                // Recover from all possible previous versions
                 const historyKeys = [
-                    'ai_novel_v7_2', 'ai_novel_v7_1', 'ai_novel_v6_16', 'ai_novel_v6_15', 'ai_novel_v6_14', 
-                    'ai_novel_v6_13', 'ai_novel_v6_12', 'ai_novel_v6_11', 'ai_novel_v6_10', 'ai_novel_v6_9', 
-                    'ai_novel_v6_8', 'ai_novel_v6_7', 'ai_novel_v6_6', 'ai_novel_v6_5', 'ai_novel_v6_2', 'ai_novel_v6'
+                    'ai_novel_v7_3', 'ai_novel_v7_2', 'ai_novel_v7_1', 
+                    'ai_novel_v6_16', 'ai_novel_v6_15', 'ai_novel_v6_14', 
+                    'ai_novel_v6_13', 'ai_novel_v6_12', 'ai_novel_v6_11', 'ai_novel_v6_10', 
+                    'ai_novel_v6_9', 'ai_novel_v6_8', 'ai_novel_v6_7', 'ai_novel_v6_6', 
+                    'ai_novel_v6_5', 'ai_novel_v6_2', 'ai_novel_v6'
                 ];
+                
                 let found = null;
-                for(let key of historyKeys) {
+                for (let key of historyKeys) {
                     const d = localStorage.getItem(key);
-                    if(d) { try{ found = JSON.parse(d); break; }catch(e){} }
+                    if (d) { try{ found = JSON.parse(d); break; }catch(e){} }
                 }
-                if(found) {
+                
+                if (found) {
                     appState = found;
                     if(!appState.models) appState.models=[];
                     if(!appState.books) appState.books=[];
@@ -308,15 +317,15 @@
                         if (!b.chaptersPerVol) b.chaptersPerVol = 20;
                     });
                     saveState();
-                    alert("✅ 数据已自动找回！");
+                    alert("数据已从旧版本自动迁移！");
                 }
             }
             if(!appState.models) appState.models=[]; if(!appState.books) appState.books=[];
         }
 
-        function saveState() { localStorage.setItem('ai_novel_v7_3', JSON.stringify(appState)); }
+        function saveState() { localStorage.setItem('ai_novel_v7_4', JSON.stringify(appState)); }
 
-        // --- Standard Logic (from v6.16) ---
+        // --- Standard Helper Functions (Same as v6.16) ---
         function countWords(s) { return s ? s.replace(/\s+/g, '').length : 0; }
         function getBookTotalWords(b) { if(!b.volumes) return 0; return b.volumes.reduce((a,v)=>a+getVolumeTotalWords(v),0); }
         function getVolumeTotalWords(v) { if(!v.chapters) return 0; return v.chapters.reduce((a,c)=>a+countWords(c.content),0); }
