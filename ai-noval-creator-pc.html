@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 小说创作台 - PC 侧边栏优化版 v6.15</title>
+    <title>AI 小说创作台 - PC 路由版 v6.16</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -47,13 +47,13 @@
 
 <div id="app-container">
     <div id="sidebar">
-        <div class="sidebar-header"><span><i class="fas fa-rocket mr-2 text-orange-500"></i>AI 创作台 v6.15</span><button onclick="openSettings()" class="text-gray-400 hover:text-white text-sm"><i class="fas fa-cog"></i></button></div>
+        <div class="sidebar-header"><span><i class="fas fa-rocket mr-2 text-orange-500"></i>AI 创作台 v6.16</span><button onclick="openSettings()" class="text-gray-400 hover:text-white text-sm"><i class="fas fa-cog"></i></button></div>
         <div class="p-2 border-b border-gray-700">
             <div onclick="switchPage('view-home')" class="sidebar-item" id="nav-home"><i class="fas fa-home w-6 text-center"></i> 书架首页</div>
             <div onclick="startNewBook()" class="sidebar-item text-orange-400 hover:text-orange-300"><i class="fas fa-plus-circle w-6 text-center"></i> 新建作品</div>
         </div>
         <div id="sidebar-tree-container" class="flex-1 overflow-y-auto p-2 hidden"><div class="text-xs font-bold text-gray-500 uppercase px-2 mb-2 mt-2">当前目录</div><div id="sidebar-tree-content" class="space-y-1"></div></div>
-        <div class="p-4 text-xs text-gray-500 border-t border-gray-700">Feature: Sidebar Collapse</div>
+        <div class="p-4 text-xs text-gray-500 border-t border-gray-700">Feature: URL Routing</div>
     </div>
 
     <div id="main-stage">
@@ -112,7 +112,51 @@
     let appState = { models: [], books: [], activeBookId: null, activeVolumeId: null, currentChapterId: null, expandedVolumeIds: [] };
     let abortController = null, streamBuffer = "", jsonTargetType = '';
 
-    window.onload = () => { loadState(); renderGenres(); switchPage('view-home'); initModelSelects(); };
+    window.onload = () => { 
+        loadState(); 
+        renderGenres(); 
+        initModelSelects(); 
+        loadRouteFromUrl(); // 核心：启动时读取路由
+    };
+
+    // --- 路由核心逻辑 ---
+    function syncUrlState() {
+        const url = new URL(window.location);
+        if (appState.activeBookId) url.searchParams.set('b', appState.activeBookId); else url.searchParams.delete('b');
+        if (appState.activeVolumeId) url.searchParams.set('v', appState.activeVolumeId); else url.searchParams.delete('v');
+        if (appState.currentChapterId) url.searchParams.set('c', appState.currentChapterId); else url.searchParams.delete('c');
+        window.history.pushState({}, '', url);
+    }
+
+    function loadRouteFromUrl() {
+        const p = new URLSearchParams(window.location.search);
+        const bid = p.get('b'), vid = p.get('v'), cid = p.get('c');
+        if (bid) {
+            const book = appState.books.find(x => x.id == bid);
+            if (book) {
+                appState.activeBookId = parseInt(bid);
+                if (vid) {
+                    const vol = book.volumes.find(x => x.id == vid);
+                    if (vol) {
+                        appState.activeVolumeId = parseInt(vid);
+                        if (!appState.expandedVolumeIds.includes(appState.activeVolumeId)) appState.expandedVolumeIds.push(appState.activeVolumeId);
+                        if (cid) {
+                            const ch = vol.chapters.find(x => x.id == cid);
+                            if (ch) {
+                                appState.currentChapterId = parseInt(cid);
+                                openEditor(); return;
+                            }
+                        }
+                        switchPage('view-volume'); return;
+                    }
+                }
+                switchPage('view-overview'); return;
+            }
+        }
+        switchPage('view-home');
+    }
+
+    window.addEventListener('popstate', loadRouteFromUrl);
 
     function openEditor() { switchPage('view-editor'); }
 
@@ -257,9 +301,22 @@
     function switchPage(id) {
         document.querySelectorAll('.page-view').forEach(e => e.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        if(id==='view-home') { appState.activeBookId=null; renderBookList(); }
-        if(id==='view-overview') { renderVolumeList(); document.getElementById('total-outline-input').value = getActiveBook().totalOutline||''; }
-        if(id==='view-volume') { 
+        
+        // 状态清理
+        if(id === 'view-home') { 
+            appState.activeBookId = null; 
+            appState.activeVolumeId = null; 
+            appState.currentChapterId = null; 
+            renderBookList(); 
+        }
+        else if (id === 'view-overview') {
+            appState.activeVolumeId = null; 
+            appState.currentChapterId = null;
+            renderVolumeList(); 
+            document.getElementById('total-outline-input').value = getActiveBook().totalOutline||'';
+        }
+        else if(id==='view-volume') { 
+            appState.currentChapterId = null;
             renderChapterList(); 
             const vol = getActiveBook().volumes.find(v=>v.id===appState.activeVolumeId);
             document.getElementById('volume-title-header').innerText = vol.title;
@@ -269,7 +326,7 @@
             document.getElementById('btn-toggle-vol-outline').innerHTML = '<i class="fas fa-chevron-down mr-1"></i>展开全部';
             if(!appState.expandedVolumeIds.includes(vol.id)) { appState.expandedVolumeIds.push(vol.id); saveState(); }
         }
-        if(id==='view-editor') {
+        else if(id==='view-editor') {
             const c = getActiveBook().volumes.find(v=>v.id===appState.activeVolumeId).chapters.find(c=>c.id===appState.currentChapterId);
             document.getElementById('editor-chapter-title').innerText = c.title;
             document.getElementById('editor-content').innerHTML = c.content||'';
@@ -278,6 +335,8 @@
             if(appState.activeVolumeId && !appState.expandedVolumeIds.includes(appState.activeVolumeId)) { appState.expandedVolumeIds.push(appState.activeVolumeId); saveState(); }
             onEditorInput();
         }
+        
+        syncUrlState(); // 同步URL
         updateSidebar();
     }
 
@@ -296,14 +355,14 @@
     function getBookTotalWords(b) { return b.volumes ? b.volumes.reduce((a,v)=>a+getVolumeTotalWords(v),0) : 0; }
     function getVolumeTotalWords(v) { return v.chapters ? v.chapters.reduce((a,c)=>a+countWords(c.content),0) : 0; }
     function getActiveBook() { return appState.books.find(b => b.id === appState.activeBookId); }
-    function saveState() { localStorage.setItem('ai_novel_pc_v6_15', JSON.stringify(appState)); }
+    function saveState() { localStorage.setItem('ai_novel_pc_v6_16', JSON.stringify(appState)); }
     function loadState() {
-        const s = localStorage.getItem('ai_novel_pc_v6_15');
+        const s = localStorage.getItem('ai_novel_pc_v6_16');
         if(s) { appState = JSON.parse(s); }
         else {
             const mobile = localStorage.getItem('ai_novel_v6_13');
             if(mobile) { appState = JSON.parse(mobile); saveState(); console.log("Migrated from Mobile v6.13"); } 
-            else { const oldPc = localStorage.getItem('ai_novel_pc_v6_13') || localStorage.getItem('ai_novel_pc_v6_14'); if(oldPc) { appState = JSON.parse(oldPc); saveState(); alert("数据已升级到 v6.15"); } }
+            else { const oldPc = localStorage.getItem('ai_novel_pc_v6_15') || localStorage.getItem('ai_novel_pc_v6_14'); if(oldPc) { appState = JSON.parse(oldPc); saveState(); alert("数据已升级到 v6.16 (支持路由)"); } }
         }
         if(!appState.models) appState.models = []; if(!appState.books) appState.books = []; if(!appState.expandedVolumeIds) appState.expandedVolumeIds = [];
     }
