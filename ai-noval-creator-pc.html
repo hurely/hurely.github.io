@@ -389,6 +389,9 @@
 
     window.onload = () => { loadState(); renderGenres(); switchPage('view-home'); initModelSelects(); };
 
+    // --- 修复：添加 openEditor 函数 ---
+    function openEditor() { switchPage('view-editor'); }
+
     // --- PC 侧边栏同步逻辑 ---
     function updateSidebar() {
         const treeContainer = document.getElementById('sidebar-tree-container');
@@ -606,7 +609,6 @@
     function getActiveBook() { return appState.books.find(b => b.id === appState.activeBookId); }
     function saveState() { localStorage.setItem('ai_novel_pc_v6_13', JSON.stringify(appState)); }
     function loadState() {
-        // 尝试加载 PC v6.13 -> 尝试加载 Mobile v6.13 (迁移) -> 尝试加载 PC v6.5 (旧版)
         const s = localStorage.getItem('ai_novel_pc_v6_13');
         if(s) { appState = JSON.parse(s); }
         else {
