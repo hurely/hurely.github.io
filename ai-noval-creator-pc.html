@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 小说创作台 - v6.18 内部滚动版</title>
+    <title>AI 小说创作台 - v6.19 标题保存修复版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #F3F4F6; overflow: hidden; }
         
-        /* 全局滚动条样式 */
+        /* 滚动条 */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
@@ -26,62 +26,18 @@
         .page-view { display: none; width: 100%; height: 100%; flex-direction: column; overflow-y: auto; }
         .page-view.active { display: flex; animation: fadeIn 0.2s ease; }
 
-        /* --- 核心修改：编辑器固定高度与内部滚动 --- */
+        /* 编辑器固定布局 */
         #view-editor.active { flex-direction: row; background: #E5E7EB; overflow: hidden; }
-        
-        /* 容器不再滚动，而是作为居中定位 */
-        .editor-paper-container { 
-            flex: 1; 
-            display: flex; 
-            align-items: center; /* 垂直居中 */
-            justify-content: center; /* 水平居中 */
-            padding: 20px; 
-            overflow: hidden; /* 禁止外层滚动 */
-        }
-
-        /* 纸张：固定高度，Flex布局 */
-        .editor-paper { 
-            width: 100%; 
-            max-width: 850px; 
-            height: 90vh; /* 高度定死，占屏幕90% */
-            background: white; 
-            padding: 50px 60px; /* 内边距 */
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
-            border-radius: 4px; 
-            display: flex; 
-            flex-direction: column; /* 让标题和正文上下排列 */
-            overflow: hidden; /* 超出纸张部分隐藏 */
-        }
-
-        /* 标题区域：固定在纸张顶部 */
-        .editor-header {
-            flex: none; /* 不允许压缩 */
-            border-bottom: 1px solid #eee;
-            padding-bottom: 20px;
-            margin-bottom: 20px;
-        }
-
-        /* 正文区域：占据剩余空间，并在内部滚动 */
-        #editor-content {
-            flex: 1; /* 自动撑满剩余高度 */
-            overflow-y: auto; /* 超出出滚动条 */
-            outline: none;
-            padding-right: 10px; /* 防止滚动条挡住文字 */
-            padding-bottom: 50px; /* 底部留白，方便阅读最后一行 */
-            font-size: 18px;
-            line-height: 1.8;
-            color: #333;
-        }
-
-        /* 内部滚动条美化 (针对 Chrome/Edge) */
+        .editor-paper-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; overflow: hidden; }
+        .editor-paper { width: 100%; max-width: 850px; height: 90vh; background: white; padding: 50px 60px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-radius: 4px; display: flex; flex-direction: column; overflow: hidden; }
+        .editor-header { flex: none; border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 20px; }
+        #editor-content { flex: 1; overflow-y: auto; outline: none; padding-right: 10px; padding-bottom: 50px; font-size: 18px; line-height: 1.8; color: #333; }
         #editor-content::-webkit-scrollbar { width: 5px; }
         #editor-content::-webkit-scrollbar-track { background: transparent; }
         #editor-content::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
         #editor-content::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
 
         .editor-right-panel { width: 320px; background: white; border-left: 1px solid #E5E7EB; display: flex; flex-direction: column; flex-shrink: 0; }
-        
-        /* 其他样式保持不变 */
         .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; padding: 20px; }
         .input-group { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 15px; }
         .input-label { font-weight: bold; font-size: 13px; color: #374151; margin-bottom: 8px; display: block; display: flex; justify-content: space-between; }
@@ -104,13 +60,13 @@
 
 <div id="app-container">
     <div id="sidebar">
-        <div class="sidebar-header"><span><i class="fas fa-rocket mr-2 text-orange-500"></i>AI 创作台 v6.18</span><button onclick="openSettings()" class="text-gray-400 hover:text-white text-sm"><i class="fas fa-cog"></i></button></div>
+        <div class="sidebar-header"><span><i class="fas fa-rocket mr-2 text-orange-500"></i>AI 创作台 v6.19</span><button onclick="openSettings()" class="text-gray-400 hover:text-white text-sm"><i class="fas fa-cog"></i></button></div>
         <div class="p-2 border-b border-gray-700">
             <div onclick="switchPage('view-home')" class="sidebar-item" id="nav-home"><i class="fas fa-home w-6 text-center"></i> 书架首页</div>
             <div onclick="startNewBook()" class="sidebar-item text-orange-400 hover:text-orange-300"><i class="fas fa-plus-circle w-6 text-center"></i> 新建作品</div>
         </div>
         <div id="sidebar-tree-container" class="flex-1 overflow-y-auto p-2 hidden"><div class="text-xs font-bold text-gray-500 uppercase px-2 mb-2 mt-2">当前目录</div><div id="sidebar-tree-content" class="space-y-1"></div></div>
-        <div class="p-4 text-xs text-gray-500 border-t border-gray-700">Layout: Internal Scroll</div>
+        <div class="p-4 text-xs text-gray-500 border-t border-gray-700">Fix: Data Saving & Scroll</div>
     </div>
 
     <div id="main-stage">
@@ -148,7 +104,7 @@
             <div class="editor-paper-container">
                 <div class="editor-paper">
                     <div class="editor-header">
-                        <input type="text" id="editor-chapter-title" class="text-2xl font-bold text-gray-800 w-full outline-none border-none placeholder-gray-300 bg-transparent" placeholder="输入章节标题" oninput="updateChapterTitle()">
+                        <input type="text" id="editor-chapter-title" class="text-2xl font-bold text-gray-800 w-full outline-none border-none placeholder-gray-300 bg-transparent transition-colors hover:bg-gray-50 focus:bg-gray-50 rounded px-2 -ml-2" placeholder="输入章节标题" oninput="updateChapterTitle()">
                     </div>
                     <div id="editor-content" contenteditable="true" class="empty:before:content-[attr(placeholder)]" placeholder="开始创作正文..." oninput="onEditorInput()"></div>
                 </div>
@@ -175,6 +131,7 @@
     const genres = ["玄幻", "都市", "仙侠", "科幻", "悬疑", "同人", "历史", "游戏"];
     let appState = { models: [], books: [], activeBookId: null, activeVolumeId: null, currentChapterId: null, expandedVolumeIds: [] };
     let abortController = null, streamBuffer = "", jsonTargetType = '';
+    let titleUpdateTimeout;
 
     window.onload = () => { 
         loadState(); 
@@ -183,7 +140,7 @@
         loadRouteFromUrl(); 
     };
 
-    // --- 实时更新标题 ---
+    // --- 实时更新标题 (防抖优化) ---
     function updateChapterTitle() {
         const val = document.getElementById('editor-chapter-title').value;
         if(appState.activeBookId && appState.activeVolumeId && appState.currentChapterId) {
@@ -192,8 +149,10 @@
             const ch = vol.chapters.find(c => c.id === appState.currentChapterId);
             if(ch) {
                 ch.title = val;
-                saveState();
-                updateSidebar(); // 实时刷新侧边栏
+                saveState(); // 立即保存数据
+                // 延迟更新侧边栏，防止输入卡顿
+                clearTimeout(titleUpdateTimeout);
+                titleUpdateTimeout = setTimeout(updateSidebar, 500);
             }
         }
     }
@@ -434,16 +393,29 @@
     function getBookTotalWords(b) { return b.volumes ? b.volumes.reduce((a,v)=>a+getVolumeTotalWords(v),0) : 0; }
     function getVolumeTotalWords(v) { return v.chapters ? v.chapters.reduce((a,c)=>a+countWords(c.content),0) : 0; }
     function getActiveBook() { return appState.books.find(b => b.id === appState.activeBookId); }
-    function saveState() { localStorage.setItem('ai_novel_pc_v6_17', JSON.stringify(appState)); }
+    
+    // --- 核心修复：统一存储键名 ---
+    function saveState() { localStorage.setItem('ai_novel_pc_v6_19', JSON.stringify(appState)); }
     function loadState() {
-        const s = localStorage.getItem('ai_novel_pc_v6_17');
-        if(s) { appState = JSON.parse(s); }
-        else {
-            const mobile = localStorage.getItem('ai_novel_v6_13');
-            if(mobile) { appState = JSON.parse(mobile); saveState(); console.log("Migrated from Mobile v6.13"); } 
-            else { const oldPc = localStorage.getItem('ai_novel_pc_v6_16') || localStorage.getItem('ai_novel_pc_v6_15'); if(oldPc) { appState = JSON.parse(oldPc); saveState(); alert("数据已升级到 v6.17 (可编辑标题)"); } }
+        const s = localStorage.getItem('ai_novel_pc_v6_19');
+        if(s) { 
+            appState = JSON.parse(s); 
+        } else {
+            // 迁移逻辑：从 v6.16, v6.17, v6.18 中寻找最新数据
+            const old18 = localStorage.getItem('ai_novel_pc_v6_18');
+            const old17 = localStorage.getItem('ai_novel_pc_v6_17');
+            const old16 = localStorage.getItem('ai_novel_pc_v6_16');
+            
+            const migrationSource = old18 || old17 || old16;
+            if(migrationSource) { 
+                appState = JSON.parse(migrationSource); 
+                saveState(); 
+                console.log("Migrated data to v6.19");
+            }
         }
-        if(!appState.models) appState.models = []; if(!appState.books) appState.books = []; if(!appState.expandedVolumeIds) appState.expandedVolumeIds = [];
+        if(!appState.models) appState.models = []; 
+        if(!appState.books) appState.books = []; 
+        if(!appState.expandedVolumeIds) appState.expandedVolumeIds = [];
     }
     
     async function streamAI(prompt, systemPrompt, modelId, onChunk, onDone) {
