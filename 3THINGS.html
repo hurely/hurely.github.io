@@ -2,49 +2,44 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>每日三事 | 极致生产力</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
         
-        :root {
-            --primary-color: #000000; /* 默认主题色 */
-        }
-
-        body { font-family: 'Noto Sans SC', sans-serif; background-color: #f7f7f7; color: #1a1a1a; transition: color 0.3s; }
+        :root { --primary-color: #000000; }
+        body { font-family: 'Noto Sans SC', sans-serif; background-color: #f7f7f7; color: #1a1a1a; -webkit-tap-highlight-color: transparent; }
         
-        /* 动态主题样式 */
         .theme-bg { background-color: var(--primary-color) !important; }
         .theme-text { color: var(--primary-color) !important; }
         .theme-border { border-color: var(--primary-color) !important; }
-        .theme-ring { --tw-ring-color: var(--primary-color) !important; }
         
         .sidebar-item.active { background-color: #efefef; color: var(--primary-color); font-weight: 600; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
         .calendar-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; cursor: pointer; position: relative; font-size: 0.875rem; transition: all 0.2s; }
-        .calendar-day:hover { background-color: #f0f0f0; }
         .calendar-day.active { background-color: var(--primary-color) !important; color: #fff; }
         .calendar-day.has-data::after { content: ''; width: 4px; height: 4px; background-color: #d1d1d1; border-radius: 50%; position: absolute; bottom: 6px; }
         .calendar-day.today { border: 1.5px solid var(--primary-color); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        #pomo-fullscreen { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; pointer-events: none; transform: scale(1.1); }
+        #pomo-fullscreen { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; pointer-events: none; transform: scale(1.05); z-index: 100; }
         #pomo-fullscreen.show { opacity: 1; pointer-events: auto; transform: scale(1); }
         
         .ai-report-box { border-left: 3px solid var(--primary-color); background: #fafafa; padding: 1.5rem; border-radius: 0 1rem 1rem 0; margin-top: 2rem; text-align: left; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        .color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; transition: transform 0.2s; border: 2px solid transparent; }
-        .color-dot:hover { transform: scale(1.2); }
-        .color-dot.active { border-color: #ddd; transform: scale(1.1); }
+        /* 底部导航激活态 */
+        .mobile-tab.active { color: var(--primary-color); }
+        .mobile-tab.active i { transform: translateY(-2px); transition: transform 0.2s; }
     </style>
 </head>
 <body class="overflow-hidden">
 
-    <div class="flex h-screen">
+    <div class="flex h-screen pb-20 md:pb-0">
         <aside class="w-64 bg-white border-r border-gray-100 flex flex-col p-4 hidden md:flex z-40">
             <div class="flex items-center space-x-3 px-3 mb-10 mt-2">
                 <div class="w-8 h-8 theme-bg rounded-lg flex items-center justify-center text-white font-bold text-sm">三</div>
@@ -68,20 +63,12 @@
                 </button>
             </nav>
 
-            <div id="pomo-mini" onclick="expandTimer()" class="hidden mb-4 p-3 theme-bg text-white rounded-2xl cursor-pointer hover:scale-105 transition-transform flex items-center justify-between shadow-lg">
-                <div class="flex items-center space-x-2">
-                    <i data-lucide="timer" class="w-4 h-4 animate-pulse"></i>
-                    <span id="mini-timer-display" class="text-xs font-mono">25:00</span>
-                </div>
-                <i data-lucide="maximize-2" class="w-3 h-3 opacity-50"></i>
-            </div>
-
-            <div class="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+            <div class="mt-auto p-4 bg-gray-50 rounded-2xl border border-gray-100">
                 <div class="flex justify-between text-[10px] text-gray-400 font-bold mb-2 uppercase tracking-widest">
-                    <span>任务完成进度</span>
+                    <span>完成进度</span>
                     <span id="percent-label" class="theme-text">0%</span>
                 </div>
-                <div class="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
+                <div class="w-full bg-gray-200 h-1 rounded-full overflow-hidden">
                     <div id="progress-bar" class="theme-bg h-full rounded-full transition-all duration-700" style="width: 0%"></div>
                 </div>
             </div>
@@ -89,21 +76,29 @@
 
         <main class="flex-1 overflow-y-auto bg-[#f7f7f7] no-scrollbar relative">
             
-            <div id="tab-today-content" class="tab-content active max-w-xl mx-auto pt-20 px-6 pb-20">
+            <div id="pomo-mini" onclick="expandTimer()" class="hidden fixed top-4 right-4 z-[70] p-3 theme-bg text-white rounded-2xl cursor-pointer hover:scale-105 transition-transform flex items-center justify-between shadow-xl min-w-[100px]">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="timer" class="w-4 h-4 animate-pulse"></i>
+                    <span id="mini-timer-display" class="text-xs font-mono font-bold">25:00</span>
+                </div>
+                <i data-lucide="maximize-2" class="w-3 h-3 opacity-50 ml-2"></i>
+            </div>
+
+            <div id="tab-today-content" class="tab-content active max-w-xl mx-auto pt-10 md:pt-20 px-6 pb-24">
                 <div class="mb-10 flex justify-between items-end">
                     <div class="text-left">
-                        <h2 id="focus-date-title" class="text-3xl font-bold tracking-tight italic text-gray-900">每日三事</h2>
-                        <p id="focus-date-subtitle" class="text-gray-400 text-sm mt-1">专注于最重要的三件事</p>
+                        <h2 id="focus-date-title" class="text-2xl md:text-3xl font-bold tracking-tight italic text-gray-900">每日三事</h2>
+                        <p id="focus-date-subtitle" class="text-gray-400 text-xs md:text-sm mt-1">专注于最重要的三件事</p>
                     </div>
-                    <div id="live-time" class="text-2xl font-light text-gray-300 font-mono tracking-tighter">00:00:00</div>
+                    <div id="live-time" class="text-xl md:text-2xl font-light text-gray-300 font-mono">00:00:00</div>
                 </div>
 
-                <div class="bg-white rounded-[32px] p-8 border border-gray-100 shadow-sm mb-8 flex items-center justify-between group">
+                <div class="bg-white rounded-[32px] p-6 md:p-8 border border-gray-100 shadow-sm mb-8 flex items-center justify-between group">
                     <div class="flex flex-col text-left">
                         <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">专注计时</span>
-                        <h3 class="text-xl font-bold">开启一段专注时光</h3>
+                        <h3 class="text-lg md:text-xl font-bold">开启一段专注时光</h3>
                     </div>
-                    <button onclick="expandTimer()" class="w-14 h-14 theme-bg rounded-full flex items-center justify-center text-white hover:scale-105 transition-all shadow-xl shadow-black/5">
+                    <button onclick="expandTimer()" class="w-12 h-12 md:w-14 md:h-14 theme-bg rounded-full flex items-center justify-center text-white hover:scale-105 transition-all shadow-lg">
                         <i data-lucide="play" class="w-6 h-6 fill-current"></i>
                     </button>
                 </div>
@@ -114,33 +109,33 @@
                     <span class="flex items-center"><i data-lucide="flame" class="w-3.5 h-3.5 mr-1 text-orange-400"></i> 今日专注: <b id="today-pomo-count" class="theme-text mx-1">0</b> 个番茄钟</span>
                 </div>
 
-                <div id="saved-ai-report" class="hidden ai-report-box animate-in fade-in duration-700 text-left">
-                    <div class="flex items-center space-x-2 mb-3 theme-text font-bold text-xs uppercase tracking-widest">
+                <div id="saved-ai-report" class="hidden ai-report-box animate-in fade-in duration-700">
+                    <div class="flex items-center space-x-2 mb-3 theme-text font-bold text-[10px] uppercase tracking-widest">
                         <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-                        <span>当日 AI 复盘档案</span>
+                        <span>AI 复盘档案</span>
                     </div>
                     <p id="saved-ai-content" class="text-sm text-gray-600 leading-relaxed italic whitespace-pre-wrap"></p>
                 </div>
             </div>
 
-            <div id="tab-links-content" class="tab-content max-w-4xl mx-auto pt-20 px-6 pb-20">
-                <div class="flex justify-between items-end mb-12">
-                    <h2 class="text-3xl font-bold italic">工作导航</h2>
-                    <button onclick="showModal()" class="theme-bg text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center space-x-1"><i data-lucide="plus" class="w-4 h-4"></i><span>添加工具</span></button>
+            <div id="tab-links-content" class="tab-content max-w-4xl mx-auto pt-10 md:pt-20 px-6 pb-24">
+                <div class="flex justify-between items-end mb-10">
+                    <h2 class="text-2xl md:text-3xl font-bold italic">工作导航</h2>
+                    <button onclick="showModal()" class="theme-bg text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center space-x-1"><i data-lucide="plus" class="w-4 h-4"></i><span>添加</span></button>
                 </div>
-                <div id="links-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left"></div>
+                <div id="links-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 text-left"></div>
             </div>
 
-            <div id="tab-history-content" class="tab-content max-w-xl mx-auto pt-20 px-6 pb-20">
+            <div id="tab-history-content" class="tab-content max-w-xl mx-auto pt-10 md:pt-20 px-6 pb-24">
                 <div class="flex items-center justify-between mb-8">
                     <h2 class="text-2xl font-bold">日历回顾</h2>
                     <div class="flex items-center space-x-4">
-                        <button onclick="changeMonth(-1)" class="p-2 hover:bg-white rounded-lg transition-colors"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                        <button onclick="changeMonth(-1)" class="p-2 hover:bg-white rounded-lg"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
                         <span id="calendar-month-label" class="text-sm font-bold min-w-[100px] text-center">2026年 1月</span>
-                        <button onclick="changeMonth(1)" class="p-2 hover:bg-white rounded-lg transition-colors"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                        <button onclick="changeMonth(1)" class="p-2 hover:bg-white rounded-lg"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
                     </div>
                 </div>
-                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                <div class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
                     <div class="grid grid-cols-7 gap-1 mb-6 text-center text-[10px] font-bold text-gray-300 uppercase tracking-widest">
                         <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
                     </div>
@@ -148,99 +143,98 @@
                 </div>
             </div>
 
-            <div id="tab-ai-content" class="tab-content max-w-xl mx-auto pt-20 px-6 pb-20 text-left">
+            <div id="tab-ai-content" class="tab-content max-w-xl mx-auto pt-10 md:pt-20 px-6 pb-24">
                 <h2 class="text-2xl font-bold mb-8 italic">AI 智能复盘</h2>
-                <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+                <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6 text-left">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="text-[10px] text-gray-400 font-bold uppercase mb-2 block tracking-widest">总结周期</label>
+                            <label class="text-[10px] text-gray-400 font-bold uppercase mb-2 block tracking-widest">周期</label>
                             <select id="ai-period" onchange="changeAiPeriod()" class="w-full bg-gray-50 rounded-xl p-3 text-sm outline-none border-none">
-                                <option value="1">当日复盘</option>
-                                <option value="7">本周复盘</option>
-                                <option value="30">月度复盘</option>
+                                <option value="1">当日复盘</option><option value="7">本周复盘</option><option value="30">月度复盘</option>
                             </select>
                         </div>
                         <div>
-                            <label class="text-[10px] text-gray-400 font-bold uppercase mb-2 block tracking-widest">选用 AI 模型</label>
+                            <label class="text-[10px] text-gray-400 font-bold uppercase mb-2 block tracking-widest">模型</label>
                             <select id="ai-model-select" onchange="saveActiveModel()" class="w-full bg-gray-50 rounded-xl p-3 text-sm outline-none border-none"></select>
                         </div>
                     </div>
-                    <div>
-                        <label class="text-[10px] text-gray-400 font-bold uppercase mb-2 block tracking-widest">自定义 Prompt</label>
-                        <textarea id="ai-prompt-tpl" oninput="saveCustomPrompt()" class="w-full bg-gray-50 rounded-xl p-4 text-xs h-32 leading-relaxed outline-none border-none"></textarea>
-                    </div>
-                    <button id="ai-gen-btn" onclick="runAI()" class="w-full theme-bg text-white py-4 rounded-2xl font-bold text-sm flex items-center justify-center space-x-2 transition-all">
-                        <i data-lucide="sparkles" class="w-4 h-4"></i><span>生成并保存今日报告</span>
-                    </button>
+                    <textarea id="ai-prompt-tpl" oninput="saveCustomPrompt()" class="w-full bg-gray-50 rounded-xl p-4 text-xs h-32 leading-relaxed outline-none border-none"></textarea>
+                    <button id="ai-gen-btn" onclick="runAI()" class="w-full theme-bg text-white py-4 rounded-2xl font-bold text-sm flex items-center justify-center space-x-2"><i data-lucide="sparkles" class="w-4 h-4"></i><span>生成报告</span></button>
                 </div>
-                <div id="ai-result-box" class="hidden mt-8 bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
+                <div id="ai-result-box" class="hidden mt-8 bg-white p-8 rounded-3xl border border-gray-100 shadow-sm text-left">
                     <div id="ai-output" class="text-sm text-gray-700 leading-8 whitespace-pre-wrap italic"></div>
                 </div>
             </div>
 
-            <div id="tab-settings-content" class="tab-content max-w-xl mx-auto pt-20 px-6 pb-20 text-left">
+            <div id="tab-settings-content" class="tab-content max-w-xl mx-auto pt-10 md:pt-20 px-6 pb-24 text-left">
                 <h2 class="text-2xl font-bold mb-8 italic">系统配置</h2>
-                
                 <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4 mb-6">
-                    <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">主题色彩 / Theme Color</h3>
+                    <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">主题色彩</h3>
                     <div class="flex items-center space-x-4">
                         <div id="preset-colors" class="flex space-x-2">
-                            <div class="color-dot" style="background: #000000" onclick="setThemeColor('#000000')"></div>
-                            <div class="color-dot" style="background: #2c3e50" onclick="setThemeColor('#2c3e50')"></div>
-                            <div class="color-dot" style="background: #27ae60" onclick="setThemeColor('#27ae60')"></div>
-                            <div class="color-dot" style="background: #e67e22" onclick="setThemeColor('#e67e22')"></div>
-                            <div class="color-dot" style="background: #c0392b" onclick="setThemeColor('#c0392b')"></div>
-                            <div class="color-dot" style="background: #8e44ad" onclick="setThemeColor('#8e44ad')"></div>
+                            <div class="color-dot w-6 h-6 rounded-full cursor-pointer border-2 border-white" style="background: #000000" onclick="setThemeColor('#000000')"></div>
+                            <div class="color-dot w-6 h-6 rounded-full cursor-pointer border-2 border-white" style="background: #2c3e50" onclick="setThemeColor('#2c3e50')"></div>
+                            <div class="color-dot w-6 h-6 rounded-full cursor-pointer border-2 border-white" style="background: #27ae60" onclick="setThemeColor('#27ae60')"></div>
+                            <div class="color-dot w-6 h-6 rounded-full cursor-pointer border-2 border-white" style="background: #e67e22" onclick="setThemeColor('#e67e22')"></div>
+                            <div class="color-dot w-6 h-6 rounded-full cursor-pointer border-2 border-white" style="background: #c0392b" onclick="setThemeColor('#c0392b')"></div>
                         </div>
-                        <div class="h-6 w-[1px] bg-gray-100 mx-2"></div>
                         <input type="color" id="custom-color-picker" oninput="setThemeColor(this.value)" class="w-8 h-8 rounded-full border-none cursor-pointer bg-transparent">
                     </div>
                 </div>
-
                 <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4 mb-6">
-                    <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">API Configuration</h3>
                     <input type="text" id="cfg-url" placeholder="Base URL" class="w-full bg-gray-50 p-3 rounded-xl text-sm outline-none border border-transparent focus:border-gray-200">
                     <input type="password" id="cfg-key" placeholder="API Key" class="w-full bg-gray-50 p-3 rounded-xl text-sm outline-none border border-transparent focus:border-gray-200">
                     <div class="pt-2 flex flex-wrap gap-2" id="model-tags"></div>
                     <div class="flex space-x-2">
-                        <input type="text" id="new-model" placeholder="模型名" class="flex-1 bg-gray-50 p-3 rounded-xl text-sm outline-none">
-                        <button onclick="addModel()" class="theme-bg text-white px-6 rounded-xl text-sm font-bold">添加</button>
+                        <input type="text" id="new-model" placeholder="模型名" class="flex-1 bg-gray-50 p-3 rounded-xl text-sm outline-none"><button onclick="addModel()" class="theme-bg text-white px-6 rounded-xl text-sm font-bold">添加</button>
                     </div>
                     <button onclick="saveAllSettings()" class="w-full bg-gray-100 py-3 rounded-xl text-xs font-bold mt-2 uppercase tracking-widest hover:bg-gray-200">保存设置</button>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <button onclick="exportData()" class="bg-white p-6 rounded-3xl border border-gray-100 text-center uppercase text-[10px] font-bold tracking-widest py-6 hover:bg-gray-50 transition-all">导出备份</button>
-                    <label class="bg-white p-6 rounded-3xl border border-gray-100 text-center uppercase text-[10px] font-bold tracking-widest py-6 cursor-pointer hover:bg-gray-50">导入备份<input type="file" class="hidden" onchange="importData(this)"></label>
+                    <button onclick="exportData()" class="bg-white p-6 rounded-3xl border border-gray-100 text-center uppercase text-[10px] font-bold tracking-widest py-6">导出备份</button>
+                    <label class="bg-white p-6 rounded-3xl border border-gray-100 text-center uppercase text-[10px] font-bold tracking-widest py-6 cursor-pointer">导入备份<input type="file" class="hidden" onchange="importData(this)"></label>
                 </div>
             </div>
         </main>
     </div>
 
-    <div id="pomo-fullscreen" class="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center p-12">
-        <button onclick="minimizeTimer()" class="absolute top-8 right-8 p-3 bg-gray-50 rounded-full text-gray-400 hover:text-black hover:bg-gray-100 transition-all">
-            <i data-lucide="minimize-2" class="w-6 h-6"></i>
+    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-100 h-20 flex items-center justify-around z-50 pb-safe">
+        <button onclick="switchTab('today')" id="m-btn-today" class="mobile-tab active flex flex-col items-center space-y-1 text-gray-400">
+            <i data-lucide="sun" class="w-6 h-6"></i><span class="text-[10px] font-medium">清单</span>
         </button>
+        <button onclick="switchTab('links')" id="m-btn-links" class="mobile-tab flex flex-col items-center space-y-1 text-gray-400">
+            <i data-lucide="layout-grid" class="w-6 h-6"></i><span class="text-[10px] font-medium">导航</span>
+        </button>
+        <button onclick="switchTab('history')" id="m-btn-history" class="mobile-tab flex flex-col items-center space-y-1 text-gray-400">
+            <i data-lucide="calendar" class="w-6 h-6"></i><span class="text-[10px] font-medium">日历</span>
+        </button>
+        <button onclick="switchTab('ai')" id="m-btn-ai" class="mobile-tab flex flex-col items-center space-y-1 text-gray-400">
+            <i data-lucide="sparkles" class="w-6 h-6"></i><span class="text-[10px] font-medium">AI</span>
+        </button>
+        <button onclick="switchTab('settings')" id="m-btn-settings" class="mobile-tab flex flex-col items-center space-y-1 text-gray-400">
+            <i data-lucide="settings" class="w-6 h-6"></i><span class="text-[10px] font-medium">设置</span>
+        </button>
+    </div>
+
+    <div id="pomo-fullscreen" class="fixed inset-0 bg-white flex flex-col items-center justify-center p-12">
+        <button onclick="minimizeTimer()" class="absolute top-8 right-8 p-3 bg-gray-50 rounded-full text-gray-400 hover:text-black transition-all"><i data-lucide="minimize-2" class="w-6 h-6"></i></button>
         <div class="text-center max-w-md w-full">
-            <span id="pomo-status-text" class="text-xs font-bold uppercase tracking-[0.4em] text-gray-300 mb-8 block animate-pulse theme-text font-bold">三事专注中</span>
-            <h2 id="fullscreen-timer-display" class="text-[12rem] font-light tracking-tighter font-mono leading-none mb-12">25:00</h2>
+            <span id="pomo-status-text" class="text-xs font-bold uppercase tracking-[0.4em] text-gray-300 mb-8 block animate-pulse theme-text">三事专注中</span>
+            <h2 id="fullscreen-timer-display" class="text-7xl md:text-[12rem] font-light tracking-tighter font-mono leading-none mb-12">25:00</h2>
             <div class="flex items-center justify-center space-x-6">
-                <button onclick="toggleTimer()" id="fs-timer-btn" class="w-24 h-24 theme-bg text-white rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-2xl">
-                    <i data-lucide="play" id="fs-timer-icon" class="w-10 h-10 fill-current"></i>
-                </button>
-                <button onclick="resetTimer()" class="w-24 h-24 bg-gray-50 text-gray-300 rounded-full flex items-center justify-center hover:bg-gray-100 transition-all">
-                    <i data-lucide="rotate-ccw" class="w-8 h-8"></i>
-                </button>
+                <button onclick="toggleTimer()" id="fs-timer-btn" class="w-20 h-20 md:w-24 md:h-24 theme-bg text-white rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-2xl"><i data-lucide="play" id="fs-timer-icon" class="w-10 h-10 fill-current"></i></button>
+                <button onclick="resetTimer()" class="w-20 h-20 md:w-24 md:h-24 bg-gray-50 text-gray-300 rounded-full flex items-center justify-center hover:bg-gray-100 transition-all"><i data-lucide="rotate-ccw" class="w-8 h-8"></i></button>
             </div>
         </div>
-        <div class="absolute bottom-20 text-gray-300 text-sm font-light italic">“ 尽力把每一天做成你喜欢的样子。 ”</div>
+        <div class="absolute bottom-20 text-gray-300 text-xs md:text-sm font-light italic px-6 text-center">“ 尽力把每一天做成你喜欢的样子。 ”</div>
     </div>
 
     <div id="modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[110] hidden flex items-center justify-center p-6">
-        <div class="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl animate-in zoom-in duration-200">
+        <div class="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl">
             <h3 class="text-xl font-bold mb-6 italic">添加工作导航</h3>
             <div class="space-y-4 text-left">
                 <input type="text" id="link-title" class="w-full bg-gray-50 p-3 rounded-xl text-sm outline-none" placeholder="工具名称">
-                <input type="text" id="link-desc" class="w-full bg-gray-50 p-3 rounded-xl text-sm outline-none" placeholder="简短描述">
+                <input type="text" id="link-desc" class="w-full bg-gray-50 p-3 rounded-xl text-sm outline-none" placeholder="描述">
                 <input type="text" id="link-url" class="w-full bg-gray-50 p-3 rounded-xl text-sm outline-none" placeholder="URL 链接">
             </div>
             <div class="flex space-x-3 mt-8">
@@ -251,26 +245,20 @@
     </div>
 
     <script>
-        // --- 持久化 Keys ---
-        const APP_DB_KEY = 'DAILY_3_DATABASE_V6';
-        const APP_CFG_KEY = 'DAILY_3_CONFIG_V6';
-        const APP_LNK_KEY = 'DAILY_3_LINKS_V6';
+        // --- 核心持久化 ---
+        const DB_KEY = 'DAILY_3_DATABASE_V7';
+        const CFG_KEY = 'DAILY_3_CONFIG_V7';
+        const LNK_KEY = 'DAILY_3_LINKS_V7';
 
-        // --- 核心状态 ---
-        let db = JSON.parse(localStorage.getItem(APP_DB_KEY) || '{}');
-        let config = JSON.parse(localStorage.getItem(APP_CFG_KEY) || JSON.stringify({
+        let db = JSON.parse(localStorage.getItem(DB_KEY) || '{}');
+        let config = JSON.parse(localStorage.getItem(CFG_KEY) || JSON.stringify({
             url: 'https://api.openai.com/v1', key: '', models: ['gpt-4o-mini', 'deepseek-chat'], activeModel: 'gpt-4o-mini', themeColor: '#000000',
-            prompts: {
-                "1": "这是我今天的【每日三事】完成情况和【番茄钟专注数】。请总结今日表现并给出一条明天的建议：",
-                "7": "这是我过去一周的复盘数据。请分析任务重心并为下周规划3个目标：",
-                "30": "作为月度总结，请识别我的核心专注领域，评价执行力稳定性，并总结三个关键成长点："
-            }
+            prompts: { "1": "请总结今日表现并给出明天的精进建议：", "7": "请分析本周重心并为下周规划3个目标：", "30": "请评价执行力稳定性并总结三个关键成长点：" }
         }));
-        let links = JSON.parse(localStorage.getItem(APP_LNK_KEY) || '[]');
+        let links = JSON.parse(localStorage.getItem(LNK_KEY) || '[]');
 
         const todayStr = new Date().toISOString().split('T')[0];
-        let currentFocusDate = todayStr;
-        let calendarDate = new Date();
+        let currentFocusDate = todayStr, calendarDate = new Date();
         let timer = null, timeLeft = 25 * 60, isTimerRunning = false, currentMode = 'focus';
 
         function init() {
@@ -285,28 +273,45 @@
             updateClock();
             document.getElementById('cfg-url').value = config.url;
             document.getElementById('cfg-key').value = config.key;
-            document.getElementById('custom-color-picker').value = config.themeColor;
         }
 
-        // --- 主题颜色逻辑 ---
+        // --- 主题与导航逻辑 ---
         function setThemeColor(color) {
             config.themeColor = color;
-            localStorage.setItem(APP_CFG_KEY, JSON.stringify(config));
+            localStorage.setItem(CFG_KEY, JSON.stringify(config));
             applyThemeColor(color);
         }
 
         function applyThemeColor(color) {
             document.documentElement.style.setProperty('--primary-color', color);
-            // 更新拾色器的值以匹配
             document.getElementById('custom-color-picker').value = color;
+            // 刷新移动端激活项颜色
+            const currentTab = document.querySelector('.sidebar-item.active').id.split('-')[1];
+            switchTab(currentTab); 
         }
 
-        // --- 核心逻辑 ---
-        function updateClock() {
-            const el = document.getElementById('live-time');
-            if(el) el.innerText = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+        function switchTab(id) {
+            // 内容显示
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${id}-content`).classList.add('active');
+            
+            // PC侧边栏状态
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(`btn-${id}`)?.classList.add('active');
+            
+            // 移动端底栏状态
+            document.querySelectorAll('.mobile-tab').forEach(el => {
+                el.classList.remove('active', 'theme-text');
+                el.classList.add('text-gray-400');
+            });
+            const mobBtn = document.getElementById(`m-btn-${id}`);
+            if(mobBtn) {
+                mobBtn.classList.add('active', 'theme-text');
+                mobBtn.classList.remove('text-gray-400');
+            }
         }
 
+        // --- 任务管理 ---
         function loadDate(date) {
             currentFocusDate = date;
             const data = db[date] || { tasks: ['', '', ''], checks: [false, false, false], pomodoros: 0, aiReport: '' };
@@ -315,11 +320,11 @@
             list.innerHTML = '';
             for(let i=0; i<3; i++) {
                 list.innerHTML += `
-                    <div class="flex items-center space-x-5 bg-white p-6 rounded-[28px] border border-gray-100 shadow-sm text-left">
+                    <div class="flex items-center space-x-4 bg-white p-5 md:p-6 rounded-[28px] border border-gray-100 shadow-sm text-left">
                         <div onclick="toggleTask(${i})" class="w-7 h-7 border-2 border-gray-200 rounded-full cursor-pointer flex items-center justify-center transition-all ${data.checks[i] ? 'theme-bg theme-border scale-95' : ''}">
                             ${data.checks[i] ? '<i data-lucide="check" class="w-4 h-4 text-white"></i>' : ''}
                         </div>
-                        <input type="text" oninput="saveCurrentData()" id="in-${i}" value="${data.tasks[i] || ''}" placeholder="..." class="flex-1 text-xl outline-none bg-transparent ${data.checks[i] ? 'line-through text-gray-300' : ''}">
+                        <input type="text" oninput="saveCurrentData()" id="in-${i}" value="${data.tasks[i] || ''}" placeholder="..." class="flex-1 text-lg md:text-xl outline-none bg-transparent ${data.checks[i] ? 'line-through text-gray-300' : ''}">
                     </div>
                 `;
             }
@@ -336,19 +341,15 @@
         function toggleTask(i) {
             if(!db[currentFocusDate]) db[currentFocusDate] = { tasks: ['', '', ''], checks: [false, false, false], pomodoros: 0, aiReport: '' };
             db[currentFocusDate].checks[i] = !db[currentFocusDate].checks[i];
-            saveCurrentData();
-            loadDate(currentFocusDate);
+            saveCurrentData(); loadDate(currentFocusDate);
         }
 
         function saveCurrentData() {
             const tasks = [0,1,2].map(i => document.getElementById(`in-${i}`).value);
             const checks = [0,1,2].map(i => db[currentFocusDate]?.checks[i] || false);
-            const pomos = db[currentFocusDate]?.pomodoros || 0;
-            const report = db[currentFocusDate]?.aiReport || '';
-            db[currentFocusDate] = { tasks, checks, pomodoros: pomos, aiReport: report };
-            localStorage.setItem(APP_DB_KEY, JSON.stringify(db));
-            updateSidebarProgress();
-            renderCalendar();
+            db[currentFocusDate] = { tasks, checks, pomodoros: db[currentFocusDate]?.pomodoros || 0, aiReport: db[currentFocusDate]?.aiReport || '' };
+            localStorage.setItem(DB_KEY, JSON.stringify(db));
+            updateSidebarProgress(); renderCalendar();
         }
 
         function updateSidebarProgress() {
@@ -358,7 +359,7 @@
             document.getElementById('percent-label').innerText = percent + '%';
         }
 
-        // --- 番茄钟交互 ---
+        // --- 番茄钟逻辑 ---
         function expandTimer() {
             document.getElementById('pomo-fullscreen').classList.add('show');
             document.getElementById('pomo-mini').classList.add('hidden');
@@ -371,7 +372,10 @@
             if(isTimerRunning) { clearInterval(timer); isTimerRunning = false; setTimerIcons('play'); }
             else { timer = setInterval(tick, 1000); isTimerRunning = true; setTimerIcons('pause'); }
         }
-        function setTimerIcons(name) { document.getElementById('fs-timer-icon').setAttribute('data-lucide', name); lucide.createIcons(); }
+        function setTimerIcons(name) {
+            document.getElementById('fs-timer-icon').setAttribute('data-lucide', name);
+            lucide.createIcons();
+        }
         function resetTimer() {
             clearInterval(timer); isTimerRunning = false;
             timeLeft = currentMode === 'focus' ? 25 * 60 : 5 * 60;
@@ -392,7 +396,7 @@
             if(currentMode === 'focus') {
                 if(!db[todayStr]) db[todayStr] = { tasks: ['', '', ''], checks: [false, false, false], pomodoros: 0, aiReport: '' };
                 db[todayStr].pomodoros = (db[todayStr].pomodoros || 0) + 1;
-                localStorage.setItem(APP_DB_KEY, JSON.stringify(db));
+                localStorage.setItem(DB_KEY, JSON.stringify(db));
                 loadDate(currentFocusDate);
                 currentMode = 'break'; timeLeft = 5 * 60;
                 document.getElementById('pomo-status-text').innerText = '休息时间';
@@ -421,7 +425,7 @@
         async function runAI() {
             if(!config.key) return alert('请配置 API Key');
             const btn = document.getElementById('ai-gen-btn');
-            btn.disabled = true; btn.innerText = "正在分析数据...";
+            btn.disabled = true; btn.innerText = "分析中...";
             const period = parseInt(document.getElementById('ai-period').value);
             const history = [];
             for(let i=0; i < period; i++) {
@@ -435,7 +439,7 @@
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.key}` },
                     body: JSON.stringify({
                         model: config.activeModel,
-                        messages: [{ role: 'system', content: '高效生活教练' }, { role: 'user', content: `${document.getElementById('ai-prompt-tpl').value}\n数据：${JSON.stringify(history)}` }]
+                        messages: [{ role: 'system', content: '教练' }, { role: 'user', content: `${document.getElementById('ai-prompt-tpl').value}\n数据：${JSON.stringify(history)}` }]
                     })
                 });
                 const resJson = await res.json();
@@ -445,17 +449,17 @@
                 if(period === 1) {
                     if(!db[todayStr]) db[todayStr] = { tasks: ['', '', ''], checks: [false, false, false], pomodoros: 0, aiReport: '' };
                     db[todayStr].aiReport = aiResult;
-                    localStorage.setItem(APP_DB_KEY, JSON.stringify(db));
+                    localStorage.setItem(DB_KEY, JSON.stringify(db));
                     loadDate(todayStr);
                 }
-            } catch (e) { alert('AI 召唤失败：' + e.message); } finally { btn.disabled = false; btn.innerText = "生成并保存今日报告"; }
+            } catch (e) { alert('失败：' + e.message); } finally { btn.disabled = false; btn.innerText = "生成报告"; }
         }
 
-        // --- 辅助 UI ---
+        // --- 其余 UI 逻辑 ---
+        function updateClock() { const el = document.getElementById('live-time'); if(el) el.innerText = new Date().toLocaleTimeString('zh-CN', { hour12: false }); }
         function renderCalendar() {
             const grid = document.getElementById('calendar-grid'), label = document.getElementById('calendar-month-label');
-            grid.innerHTML = '';
-            const y = calendarDate.getFullYear(), m = calendarDate.getMonth();
+            grid.innerHTML = ''; const y = calendarDate.getFullYear(), m = calendarDate.getMonth();
             label.innerText = `${y}年 ${m+1}月`;
             const first = new Date(y, m, 1).getDay(), days = new Date(y, m+1, 0).getDate();
             for(let i=0; i<first; i++) grid.innerHTML += `<div></div>`;
@@ -463,7 +467,7 @@
                 const s = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 const hasReport = db[s] && db[s].aiReport;
                 grid.innerHTML += `<div onclick="clickDate('${s}')" class="calendar-day ${s===todayStr?'today':''} ${s===currentFocusDate?'active':''} ${db[s]?'has-data':''}">
-                    ${d} ${hasReport ? '<span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 theme-bg rounded-full"></span>' : ''}
+                    ${d} ${hasReport ? '<span class="absolute top-1 right-1 w-1 h-1 theme-bg rounded-full"></span>' : ''}
                 </div>`;
             }
         }
@@ -472,33 +476,26 @@
         function renderLinks() {
             const grid = document.getElementById('links-grid'); grid.innerHTML = '';
             links.forEach((l, i) => {
-                grid.innerHTML += `<div class="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm relative group">
+                grid.innerHTML += `<div class="bg-white p-5 md:p-6 rounded-[32px] border border-gray-100 shadow-sm relative group">
                     <button onclick="removeLink(${i})" class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 text-gray-200 hover:text-red-500 transition-all"><i data-lucide="x" class="w-4 h-4"></i></button>
                     <h3 class="font-bold text-lg mb-1">${l.title}</h3>
                     <p class="text-xs text-gray-400 mb-6 line-clamp-1">${l.desc}</p>
                     <div class="flex space-x-2">
-                        <a href="${l.url}" target="_blank" class="flex-1 bg-gray-50 py-2 rounded-xl text-[10px] font-bold text-center text-gray-400 hover:theme-bg hover:text-white transition-all uppercase">填数据</a>
-                        <a href="${l.url}" target="_blank" class="flex-1 theme-bg py-2 rounded-xl text-[10px] font-bold text-center text-white hover:opacity-80 transition-all uppercase">查看</a>
+                        <a href="${l.url}" target="_blank" class="flex-1 bg-gray-50 py-2 rounded-xl text-[10px] font-bold text-center text-gray-400 hover:theme-bg hover:text-white transition-all uppercase">Fill</a>
+                        <a href="${l.url}" target="_blank" class="flex-1 theme-bg py-2 rounded-xl text-[10px] font-bold text-center text-white hover:opacity-80 transition-all uppercase">View</a>
                     </div>
                 </div>`;
             });
             lucide.createIcons();
         }
-        function switchTab(id) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.getElementById(`tab-${id}-content`).classList.add('active');
-            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
-            document.getElementById(`btn-${id}`)?.classList.add('active');
-        }
         function showModal() { document.getElementById('modal').classList.remove('hidden'); }
         function hideModal() { document.getElementById('modal').classList.add('hidden'); }
         function saveNewLink() {
             const title = document.getElementById('link-title').value, desc = document.getElementById('link-desc').value, url = document.getElementById('link-url').value;
-            if(!title || !url) return;
-            links.push({ title, desc, url }); localStorage.setItem(APP_LNK_KEY, JSON.stringify(links));
-            renderLinks(); hideModal();
+            if(!title || !url) return; links.push({ title, desc, url });
+            localStorage.setItem(LNK_KEY, JSON.stringify(links)); renderLinks(); hideModal();
         }
-        function removeLink(i) { links.splice(i, 1); localStorage.setItem(APP_LNK_KEY, JSON.stringify(links)); renderLinks(); }
+        function removeLink(i) { links.splice(i, 1); localStorage.setItem(LNK_KEY, JSON.stringify(links)); renderLinks(); }
         function updateModelUI() {
             const tags = document.getElementById('model-tags'), sel = document.getElementById('ai-model-select');
             tags.innerHTML = ''; sel.innerHTML = '';
@@ -508,33 +505,20 @@
             });
             lucide.createIcons();
         }
-        function addModel() {
-            const m = document.getElementById('new-model').value.trim();
-            if(m && !config.models.includes(m)) { config.models.push(m); saveAllSettings(); document.getElementById('new-model').value = ''; }
-        }
+        function addModel() { const m = document.getElementById('new-model').value.trim(); if(m && !config.models.includes(m)) { config.models.push(m); saveAllSettings(); document.getElementById('new-model').value=''; } }
         function removeModel(m) { config.models = config.models.filter(x => x !== m); saveAllSettings(); }
-        function saveActiveModel() { config.activeModel = document.getElementById('ai-model-select').value; localStorage.setItem(APP_CFG_KEY, JSON.stringify(config)); }
-        function saveCustomPrompt() { const p = document.getElementById('ai-period').value; config.prompts[p] = document.getElementById('ai-prompt-tpl').value; localStorage.setItem(APP_CFG_KEY, JSON.stringify(config)); }
+        function saveActiveModel() { config.activeModel = document.getElementById('ai-model-select').value; localStorage.setItem(CFG_KEY, JSON.stringify(config)); }
+        function saveCustomPrompt() { const p = document.getElementById('ai-period').value; config.prompts[p] = document.getElementById('ai-prompt-tpl').value; localStorage.setItem(CFG_KEY, JSON.stringify(config)); }
         function saveAllSettings() {
-            config.url = document.getElementById('cfg-url').value;
-            config.key = document.getElementById('cfg-key').value;
-            localStorage.setItem(APP_CFG_KEY, JSON.stringify(config));
-            updateModelUI(); alert('配置已保存');
+            config.url = document.getElementById('cfg-url').value; config.key = document.getElementById('cfg-key').value;
+            localStorage.setItem(CFG_KEY, JSON.stringify(config)); updateModelUI(); alert('已保存');
         }
-        function exportData() {
-            const b = new Blob([JSON.stringify({db, config, links}, null, 2)], {type:'application/json'});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'DailyThree_Backup.json'; a.click();
-        }
+        function exportData() { const b = new Blob([JSON.stringify({db, config, links}, null, 2)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'Daily3_Backup.json'; a.click(); }
         function importData(f) {
             const r = new FileReader(); r.onload = e => {
-                const data = JSON.parse(e.target.result);
-                db = data.db; config = data.config; links = data.links;
-                localStorage.setItem(APP_DB_KEY, JSON.stringify(db));
-                localStorage.setItem(APP_CFG_KEY, JSON.stringify(config));
-                localStorage.setItem(APP_LNK_KEY, JSON.stringify(links));
-                location.reload();
-            };
-            r.readAsText(f.files[0]);
+                const data = JSON.parse(e.target.result); db = data.db; config = data.config; links = data.links;
+                localStorage.setItem(DB_KEY, JSON.stringify(db)); localStorage.setItem(CFG_KEY, JSON.stringify(config)); localStorage.setItem(LNK_KEY, JSON.stringify(links)); location.reload();
+            }; r.readAsText(f.files[0]);
         }
 
         window.onload = init;
