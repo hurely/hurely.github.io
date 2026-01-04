@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>三件事 | 极致复盘 Pro</title>
+    <title>三件事 Pro | 极致工作流</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -12,7 +12,6 @@
         .sidebar-item.active { background-color: #efefef; color: #000; font-weight: 600; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        /* 日历样式 */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
         .calendar-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; cursor: pointer; position: relative; font-size: 0.875rem; transition: all 0.2s; }
         .calendar-day:hover { background-color: #f0f0f0; }
@@ -20,6 +19,9 @@
         .calendar-day.has-data::after { content: ''; width: 4px; height: 4px; background-color: #d1d1d1; border-radius: 50%; position: absolute; bottom: 6px; }
         .calendar-day.today { border: 1.5px solid #000; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        .link-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .link-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px -10px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body class="overflow-hidden">
@@ -28,11 +30,14 @@
         <aside class="w-64 bg-white border-r border-gray-100 flex flex-col p-4 hidden md:flex">
             <div class="flex items-center space-x-3 px-3 mb-10 mt-2">
                 <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-white font-bold tracking-tighter">3T</div>
-                <span class="font-bold text-lg tracking-tight italic">3THINGS</span>
+                <span class="font-bold text-lg tracking-tight italic uppercase">Focus</span>
             </div>
             <nav class="flex-1 space-y-1">
                 <button onclick="switchTab('today')" id="btn-today" class="sidebar-item active w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-all">
                     <i data-lucide="sun" class="w-4 h-4"></i><span>清单视图</span>
+                </button>
+                <button onclick="switchTab('links')" id="btn-links" class="sidebar-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-all">
+                    <i data-lucide="layout-grid" class="w-4 h-4"></i><span>工作导航</span>
                 </button>
                 <button onclick="switchTab('history')" id="btn-history" class="sidebar-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-all">
                     <i data-lucide="calendar" class="w-4 h-4"></i><span>日历回顾</span>
@@ -46,8 +51,8 @@
             </nav>
 
             <div class="mt-auto p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                <div class="flex justify-between text-[10px] text-gray-400 font-bold mb-2 uppercase tracking-widest">
-                    <span>Task Progress</span>
+                <div class="flex justify-between text-[11px] text-gray-400 font-bold mb-2 tracking-widest">
+                    <span>任务完成进度</span>
                     <span id="percent-label">0%</span>
                 </div>
                 <div class="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
@@ -60,16 +65,33 @@
             
             <div id="tab-today-content" class="tab-content active max-w-xl mx-auto pt-20 px-6 pb-20">
                 <div class="mb-12">
-                    <h2 id="focus-date-title" class="text-3xl font-bold tracking-tight mb-2 italic">2026年1月3日</h2>
-                    <p id="focus-date-subtitle" class="text-gray-400 text-sm font-medium">今天最重要的三件事</p>
-                </div>
-                <div class="space-y-4" id="task-list">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h2 id="focus-date-title" class="text-3xl font-bold tracking-tight italic text-gray-900 leading-tight">2026年1月3日</h2>
+                            <p id="focus-date-subtitle" class="text-gray-400 text-sm font-medium tracking-wide mt-1">今天最重要的三件事</p>
+                        </div>
+                        <div id="live-time" class="text-2xl font-light text-gray-400 font-mono tracking-tighter">00:00:00</div>
                     </div>
+                </div>
+                <div class="space-y-4" id="task-list"></div>
+            </div>
+
+            <div id="tab-links-content" class="tab-content max-w-4xl mx-auto pt-20 px-6 pb-20">
+                <div class="flex justify-between items-end mb-12">
+                    <div>
+                        <h2 class="text-3xl font-bold tracking-tight italic text-gray-900 leading-tight">工作导航</h2>
+                        <p class="text-gray-400 text-sm font-medium mt-2 tracking-wide">快速访问你的常用清单与数据入口</p>
+                    </div>
+                    <button onclick="showAddLinkModal()" class="flex items-center space-x-2 bg-black text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-80 transition-all">
+                        <i data-lucide="plus" class="w-4 h-4"></i><span>添加工具</span>
+                    </button>
+                </div>
+                <div id="links-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
             </div>
 
             <div id="tab-history-content" class="tab-content max-w-xl mx-auto pt-20 px-6 pb-20">
                 <div class="flex items-center justify-between mb-8">
-                    <h2 class="text-2xl font-bold">日历回顾</h2>
+                    <h2 class="text-2xl font-bold leading-tight">日历回顾</h2>
                     <div class="flex items-center space-x-4">
                         <button onclick="changeMonth(-1)" class="p-2 hover:bg-white rounded-lg transition-colors"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
                         <span id="calendar-month-label" class="text-sm font-bold min-w-[100px] text-center">2026年 1月</span>
@@ -85,7 +107,7 @@
             </div>
 
             <div id="tab-ai-content" class="tab-content max-w-xl mx-auto pt-20 px-6 pb-20">
-                <h2 class="text-2xl font-bold mb-8">AI 复盘总结</h2>
+                <h2 class="text-2xl font-bold mb-8 italic leading-tight">AI 复盘总结</h2>
                 <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -110,32 +132,32 @@
                         <i data-lucide="wand-2" class="w-4 h-4"></i><span>生成 AI 报告</span>
                     </button>
                 </div>
-                <div id="ai-result-box" class="hidden mt-8 bg-white p-8 rounded-3xl border border-gray-100 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div id="ai-result-box" class="hidden mt-8 bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
                     <div id="ai-output" class="text-sm text-gray-700 leading-8 whitespace-pre-wrap"></div>
                 </div>
             </div>
 
             <div id="tab-settings-content" class="tab-content max-w-xl mx-auto pt-20 px-6 pb-20">
-                <h2 class="text-2xl font-bold mb-8">设置与数据</h2>
+                <h2 class="text-2xl font-bold mb-8 leading-tight">设置与数据</h2>
                 <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4 mb-6">
                     <h3 class="text-xs font-bold text-gray-400 uppercase mb-4 tracking-widest">API Configuration</h3>
-                    <input type="text" id="cfg-url" placeholder="Base URL (https://api...)" class="w-full bg-gray-50 p-3 rounded-xl text-sm outline-none border border-transparent focus:border-gray-100">
-                    <input type="password" id="cfg-key" placeholder="API Key (sk-...)" class="w-full bg-gray-50 p-3 rounded-xl text-sm outline-none border border-transparent focus:border-gray-100">
+                    <input type="text" id="cfg-url" placeholder="Base URL (https://api...)" class="w-full bg-gray-50 p-3 rounded-xl text-sm outline-none">
+                    <input type="password" id="cfg-key" placeholder="API Key (sk-...)" class="w-full bg-gray-50 p-3 rounded-xl text-sm outline-none">
                     <div class="pt-4 flex flex-wrap gap-2" id="model-tags"></div>
                     <div class="flex space-x-2 mt-2">
-                        <input type="text" id="new-model" placeholder="添加新模型..." class="flex-1 bg-gray-50 p-3 rounded-xl text-sm outline-none border border-transparent focus:border-gray-100">
-                        <button onclick="addModel()" class="bg-black text-white px-6 rounded-xl text-sm font-bold">添加</button>
+                        <input type="text" id="new-model" placeholder="添加模型名..." class="flex-1 bg-gray-50 p-3 rounded-xl text-sm outline-none">
+                        <button onclick="addModel()" class="bg-black text-white px-6 rounded-xl text-sm font-bold transition-all">添加</button>
                     </div>
-                    <button onclick="saveConfig()" class="w-full bg-gray-100 py-3 rounded-xl text-xs font-bold mt-4 uppercase tracking-widest hover:bg-gray-200 transition-all">保存 API 配置</button>
+                    <button onclick="saveConfig()" class="w-full bg-gray-100 py-3 rounded-xl text-xs font-bold mt-4 uppercase tracking-widest transition-all">保存 API 配置</button>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <button onclick="exportData()" class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm text-center hover:bg-gray-50 transition-all">
+                    <button onclick="exportData()" class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm text-center transition-all hover:bg-gray-50">
                         <i data-lucide="download" class="w-5 h-5 mx-auto mb-2 text-gray-300"></i>
-                        <span class="text-[10px] font-bold uppercase tracking-widest">导出 JSON 备份</span>
+                        <span class="text-[10px] font-bold tracking-widest">导出备份</span>
                     </button>
-                    <label class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm text-center cursor-pointer hover:bg-gray-50 transition-all">
+                    <label class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm text-center cursor-pointer transition-all hover:bg-gray-50">
                         <i data-lucide="upload" class="w-5 h-5 mx-auto mb-2 text-gray-300"></i>
-                        <span class="text-[10px] font-bold uppercase tracking-widest">导入 JSON 备份</span>
+                        <span class="text-[10px] font-bold tracking-widest">导入备份</span>
                         <input type="file" class="hidden" onchange="importData(this)">
                     </label>
                 </div>
@@ -143,31 +165,63 @@
         </main>
     </div>
 
-    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-gray-100 h-16 flex items-center justify-around z-50">
-        <button onclick="switchTab('today')" class="p-2"><i data-lucide="sun" class="w-5 h-5"></i></button>
-        <button onclick="switchTab('history')" class="p-2"><i data-lucide="calendar" class="w-5 h-5"></i></button>
-        <button onclick="switchTab('ai')" class="p-2"><i data-lucide="sparkles" class="w-5 h-5"></i></button>
-        <button onclick="switchTab('settings')" class="p-2"><i data-lucide="settings" class="w-5 h-5"></i></button>
+    <div id="modal-add-link" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-6">
+        <div class="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+            <h3 class="text-xl font-bold mb-6 italic">添加工作工具</h3>
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="text-[10px] text-gray-400 font-bold uppercase block mb-1">工具名称</label>
+                    <input type="text" id="link-title" class="w-full bg-gray-50 p-3 rounded-xl text-sm outline-none border border-transparent focus:border-gray-200" placeholder="如：小红书素材库">
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 font-bold uppercase block mb-1">功能简述</label>
+                    <input type="text" id="link-desc" class="w-full bg-gray-50 p-3 rounded-xl text-sm outline-none border border-transparent focus:border-gray-200" placeholder="整理推广素材，优化文案">
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 font-bold uppercase block mb-1">目标链接 (URL)</label>
+                    <input type="text" id="link-url" class="w-full bg-gray-50 p-3 rounded-xl text-sm outline-none border border-transparent focus:border-gray-200" placeholder="https://...">
+                </div>
+            </div>
+            <div class="flex space-x-3 mt-8">
+                <button onclick="closeAddLinkModal()" class="flex-1 py-3 rounded-xl text-sm font-bold bg-gray-100 text-gray-500 transition-all">取消</button>
+                <button onclick="saveNewLink()" class="flex-1 py-3 rounded-xl text-sm font-bold bg-black text-white transition-all">确认添加</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        // --- 初始化状态 ---
+        // --- 核心状态与时间逻辑 ---
         const todayStr = new Date().toISOString().split('T')[0];
         let currentFocusDate = todayStr;
         let calendarDate = new Date();
 
+        // 实时更新时间
+        function updateLiveTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false });
+            const timeEl = document.getElementById('live-time');
+            if(timeEl) timeEl.innerText = timeStr;
+        }
+        setInterval(updateLiveTime, 1000);
+
         const PROMPT_TEMPLATES = {
-            "1": "这是我今日的任务。请作为一名效率专家，简要分析我的完成质量，并给出一句精炼的明日寄语：",
-            "7": "这是我过去一周的清单。请分析：\n1. 本周我的注意力主要消耗在哪里？\n2. 任务完成率波动的规律是什么？\n3. 给下周提出三个具体改进点：",
-            "30": "这是月度复盘。请通过数据识别我的核心能力增长点，评价我的目标专注度，并用三个词总结我这个月的状态：",
-            "90": "作为季度战略分析，请评估我的长期项目推进进度，分析大方向是否偏离，并为下一个季度的三件事规划提供逻辑建议："
+            "1": "这是我今日的任务记录。请以客观专业的语气分析我的完成情况，并给出一句精炼的建议：",
+            "7": "这是我过去一周的清单。请分析我的注意力分布、波动规律，并提出下周三个改进建议：",
+            "30": "这是月度复盘。请识别核心能力增长点，评价专注度，并用三个词总结状态：",
+            "90": "作为季度战略分析，请评估长期项目进度，分析大方向是否偏离并提供下季度规划建议："
         };
 
-        let db = JSON.parse(localStorage.getItem('3T_DB_V2') || '{}');
-        let config = JSON.parse(localStorage.getItem('3T_CFG_V2') || JSON.stringify({
+        const defaultLinks = [
+            { id: 1, title: '每日待办清单', desc: '规划今日任务，提高工作效率', url: '#', icon: 'zap' },
+            { id: 2, title: '好习惯打卡', desc: '坚持良好习惯，养成自律生活', url: '#', icon: 'award' }
+        ];
+
+        let db = JSON.parse(localStorage.getItem('3T_DB_V3') || '{}');
+        let links = JSON.parse(localStorage.getItem('3T_LINKS') || JSON.stringify(defaultLinks));
+        let config = JSON.parse(localStorage.getItem('3T_CFG_V3') || JSON.stringify({
             url: 'https://api.openai.com/v1',
             key: '',
-            models: ['gpt-4o-mini', 'deepseek-chat', 'claude-3-5-sonnet'],
+            models: ['gpt-4o-mini', 'deepseek-chat'],
             activeModel: 'gpt-4o-mini'
         }));
 
@@ -175,37 +229,90 @@
             lucide.createIcons();
             loadDate(todayStr);
             renderCalendar();
+            renderLinks();
             updateModelUI();
             updatePromptTemplate();
+            updateLiveTime();
             
-            // 设置页初始化
             document.getElementById('cfg-url').value = config.url;
             document.getElementById('cfg-key').value = config.key;
         }
 
-        // --- 核心任务逻辑 ---
+        // --- 工作导航 ---
+        function renderLinks() {
+            const grid = document.getElementById('links-grid');
+            grid.innerHTML = '';
+            links.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'link-card relative group bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm text-left';
+                card.innerHTML = `
+                    <button onclick="deleteLink(${item.id})" class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 p-2 text-gray-300 hover:text-red-400 transition-all">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                    <div class="flex items-start space-x-6">
+                        <div class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center">
+                            <i data-lucide="${item.icon || 'link'}" class="w-6 h-6 text-gray-400"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-bold mb-1">${item.title}</h3>
+                            <p class="text-gray-400 text-sm leading-relaxed mb-6 line-clamp-2">${item.desc}</p>
+                            <div class="flex space-x-2">
+                                <a href="${item.url}" target="_blank" class="bg-gray-50 px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider text-gray-400 hover:bg-black hover:text-white transition-all">填数据</a>
+                                <a href="${item.url}" target="_blank" class="bg-blue-500 px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider text-white hover:bg-blue-600 transition-all">查看数据</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        function showAddLinkModal() { document.getElementById('modal-add-link').classList.remove('hidden'); }
+        function closeAddLinkModal() { document.getElementById('modal-add-link').classList.add('hidden'); }
+
+        function saveNewLink() {
+            const title = document.getElementById('link-title').value;
+            const desc = document.getElementById('link-desc').value;
+            const url = document.getElementById('link-url').value;
+            if(!title || !url) return alert('请填写完整信息');
+            links.push({ id: Date.now(), title, desc, url, icon: 'box' });
+            localStorage.setItem('3T_LINKS', JSON.stringify(links));
+            renderLinks();
+            closeAddLinkModal();
+            document.getElementById('link-title').value = '';
+            document.getElementById('link-desc').value = '';
+            document.getElementById('link-url').value = '';
+        }
+
+        function deleteLink(id) {
+            if(!confirm('确定移除此工具吗？')) return;
+            links = links.filter(l => l.id !== id);
+            localStorage.setItem('3T_LINKS', JSON.stringify(links));
+            renderLinks();
+        }
+
+        // --- 核心清单逻辑 ---
         function loadDate(date) {
             currentFocusDate = date;
             const data = db[date] || { tasks: ['', '', ''], checks: [false, false, false] };
-            const isToday = date === todayStr;
-            
-            document.getElementById('focus-date-title').innerText = isToday ? "今日清单" : date;
-            document.getElementById('focus-date-subtitle').innerText = isToday ? "专注于最重要的三件事" : "回顾这一天的任务状态";
+            document.getElementById('focus-date-title').innerText = date === todayStr ? 
+                new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }) : date;
             
             const list = document.getElementById('task-list');
             list.innerHTML = '';
             for(let i=0; i<3; i++) {
                 list.innerHTML += `
-                    <div class="flex items-center space-x-5 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm group transition-all">
-                        <div onclick="toggleTask(${i})" class="w-7 h-7 border-2 border-gray-200 rounded-full cursor-pointer flex items-center justify-center transition-all ${data.checks[i] ? 'bg-black border-black scale-95' : 'hover:border-black'}">
+                    <div class="flex items-center space-x-5 bg-white p-6 rounded-[28px] border border-gray-100 shadow-sm transition-all text-left">
+                        <div onclick="toggleTask(${i})" class="w-7 h-7 border-2 border-gray-200 rounded-full cursor-pointer flex items-center justify-center transition-all ${data.checks[i] ? 'bg-black border-black scale-95' : ''}">
                             ${data.checks[i] ? '<i data-lucide="check" class="w-4 h-4 text-white"></i>' : ''}
                         </div>
-                        <input type="text" oninput="saveTask()" id="in-${i}" value="${data.tasks[i]}" placeholder="..." class="flex-1 text-xl outline-none bg-transparent placeholder-gray-200 ${data.checks[i] ? 'line-through text-gray-300' : ''}">
+                        <input type="text" oninput="saveTask()" id="in-${i}" value="${data.tasks[i]}" placeholder="..." class="flex-1 text-xl outline-none bg-transparent ${data.checks[i] ? 'line-through text-gray-300' : ''}">
                     </div>
                 `;
             }
             lucide.createIcons();
-            updateProgress(); // 每次加载日期时更新进度条
+            updateProgress();
         }
 
         function toggleTask(i) {
@@ -218,124 +325,88 @@
             const tasks = [0,1,2].map(i => document.getElementById(`in-${i}`).value);
             if(!db[currentFocusDate]) db[currentFocusDate] = { tasks: ['', '', ''], checks: [false, false, false] };
             db[currentFocusDate].tasks = tasks;
-            localStorage.setItem('3T_DB_V2', JSON.stringify(db));
-            updateProgress(); // 实时进度
-            renderCalendar(); // 刷新小圆点
+            localStorage.setItem('3T_DB_V3', JSON.stringify(db));
+            updateProgress();
+            renderCalendar();
         }
 
         function updateProgress() {
             const data = db[currentFocusDate] || { checks: [false, false, false] };
-            const count = data.checks.filter(c => c).length;
-            const percent = Math.round((count / 3) * 100);
-            
+            const percent = Math.round((data.checks.filter(c => c).length / 3) * 100);
             document.getElementById('progress-bar').style.width = percent + '%';
             document.getElementById('percent-label').innerText = percent + '%';
         }
 
         function saveAndRefresh() {
-            localStorage.setItem('3T_DB_V2', JSON.stringify(db));
+            localStorage.setItem('3T_DB_V3', JSON.stringify(db));
             loadDate(currentFocusDate);
             renderCalendar();
         }
 
-        // --- 日历展示 ---
         function renderCalendar() {
             const grid = document.getElementById('calendar-grid');
             const label = document.getElementById('calendar-month-label');
             grid.innerHTML = '';
-            
             const year = calendarDate.getFullYear();
             const month = calendarDate.getMonth();
             label.innerText = `${year}年 ${month + 1}月`;
-
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
-
             for(let i=0; i<firstDay; i++) grid.innerHTML += `<div></div>`;
-
             for(let d=1; d<=daysInMonth; d++) {
                 const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 const hasData = db[dateStr] && db[dateStr].tasks.some(t => t.trim() !== '');
-                const isToday = dateStr === todayStr;
                 const isActive = dateStr === currentFocusDate;
-
                 grid.innerHTML += `
-                    <div onclick="clickDate('${dateStr}')" class="calendar-day ${isToday?'today':''} ${isActive?'active':''} ${hasData?'has-data':''}">
+                    <div onclick="clickDate('${dateStr}')" class="calendar-day ${dateStr === todayStr?'today':''} ${isActive?'active':''} ${hasData?'has-data':''}">
                         ${d}
                     </div>
                 `;
             }
         }
 
-        function changeMonth(delta) {
-            calendarDate.setMonth(calendarDate.getMonth() + delta);
-            renderCalendar();
-        }
-
-        function clickDate(date) {
-            loadDate(date);
-            switchTab('today');
-        }
-
-        // --- AI 逻辑 ---
-        function updatePromptTemplate() {
-            const period = document.getElementById('ai-period').value;
-            document.getElementById('ai-prompt-tpl').value = PROMPT_TEMPLATES[period];
-        }
+        function changeMonth(delta) { calendarDate.setMonth(calendarDate.getMonth() + delta); renderCalendar(); }
+        function clickDate(date) { loadDate(date); switchTab('today'); }
+        function updatePromptTemplate() { document.getElementById('ai-prompt-tpl').value = PROMPT_TEMPLATES[document.getElementById('ai-period').value]; }
 
         async function runAI() {
             const btn = document.getElementById('ai-gen-btn');
             const period = parseInt(document.getElementById('ai-period').value);
-            const prompt = document.getElementById('ai-prompt-tpl').value;
-            const model = document.getElementById('ai-model-select').value;
-
-            if(!config.key) return alert('请在设置中配置 API Key');
-
+            if(!config.key) return alert('请配置 API Key');
             btn.disabled = true;
-            btn.innerHTML = `<i class="animate-spin" data-lucide="loader-2"></i><span>正在分析历史数据...</span>`;
+            btn.innerHTML = `<i class="animate-spin" data-lucide="loader-2"></i><span>分析中...</span>`;
             lucide.createIcons();
-
-            const historyContext = [];
-            const now = new Date();
+            const history = [];
             for(let i=0; i < period; i++) {
-                const d = new Date(now);
-                d.setDate(d.getDate() - i);
+                const d = new Date(); d.setDate(d.getDate() - i);
                 const k = d.toISOString().split('T')[0];
-                if(db[k]) historyContext.push({ date: k, data: db[k] });
+                if(db[k]) history.push({ date: k, data: db[k] });
             }
-
             try {
                 const res = await fetch(`${config.url.replace(/\/$/, '')}/chat/completions`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.key}` },
                     body: JSON.stringify({
-                        model: model,
-                        messages: [
-                            { role: 'system', content: '你是一个专注且极简的高效教练。' },
-                            { role: 'user', content: `${prompt}\n\n历史数据（JSON）：\n${JSON.stringify(historyContext)}` }
-                        ]
+                        model: document.getElementById('ai-model-select').value,
+                        messages: [{ role: 'system', content: '极简效率教练' }, { role: 'user', content: `${document.getElementById('ai-prompt-tpl').value}\n\n数据：${JSON.stringify(history)}` }]
                     })
                 });
                 const resData = await res.json();
                 document.getElementById('ai-result-box').classList.remove('hidden');
                 document.getElementById('ai-output').innerText = resData.choices[0].message.content;
-            } catch (e) {
-                alert('请求失败，请检查 Base URL 和 Key：' + e.message);
-            } finally {
+            } catch (e) { alert('失败：' + e.message); } finally {
                 btn.disabled = false;
                 btn.innerHTML = `<i data-lucide="wand-2"></i><span>生成 AI 报告</span>`;
                 lucide.createIcons();
             }
         }
 
-        // --- 配置管理 ---
         function updateModelUI() {
             const tags = document.getElementById('model-tags');
             const select = document.getElementById('ai-model-select');
-            tags.innerHTML = '';
-            select.innerHTML = '';
+            tags.innerHTML = ''; select.innerHTML = '';
             config.models.forEach(m => {
-                tags.innerHTML += `<span class="bg-gray-100 px-3 py-1 rounded-full text-[10px] font-bold uppercase flex items-center shadow-sm">${m} <i onclick="removeModel('${m}')" data-lucide="x" class="w-3 h-3 ml-2 cursor-pointer hover:text-red-500"></i></span>`;
+                tags.innerHTML += `<span class="bg-gray-100 px-3 py-1 rounded-full text-[10px] font-bold uppercase flex items-center shadow-sm">${m} <i onclick="removeModel('${m}')" data-lucide="x" class="w-3 h-3 ml-2 cursor-pointer hover:text-red-500 transition-all"></i></span>`;
                 select.innerHTML += `<option value="${m}" ${m===config.activeModel?'selected':''}>${m}</option>`;
             });
             lucide.createIcons();
@@ -343,28 +414,20 @@
 
         function addModel() {
             const name = document.getElementById('new-model').value.trim();
-            if(name && !config.models.includes(name)) {
-                config.models.push(name);
-                saveConfig();
-                document.getElementById('new-model').value = '';
-            }
+            if(name && !config.models.includes(name)) { config.models.push(name); saveConfig(); document.getElementById('new-model').value = ''; }
         }
 
-        function removeModel(name) {
-            config.models = config.models.filter(m => m !== name);
-            saveConfig();
-        }
+        function removeModel(name) { config.models = config.models.filter(m => m !== name); saveConfig(); }
 
         function saveConfig() {
             config.url = document.getElementById('cfg-url').value;
             config.key = document.getElementById('cfg-key').value;
             config.activeModel = document.getElementById('ai-model-select').value;
-            localStorage.setItem('3T_CFG_V2', JSON.stringify(config));
+            localStorage.setItem('3T_CFG_V3', JSON.stringify(config));
             updateModelUI();
             alert('设置已保存');
         }
 
-        // --- 视图切换 ---
         function switchTab(id) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById(`tab-${id}-content`).classList.add('active');
@@ -373,22 +436,19 @@
         }
 
         function exportData() {
-            const blob = new Blob([JSON.stringify(db, null, 2)], {type: 'application/json'});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `3Things_Backup_${todayStr}.json`;
-            a.click();
+            const blob = new Blob([JSON.stringify({db, links, config}, null, 2)], {type: 'application/json'});
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '3Things_Full_Backup.json'; a.click();
         }
 
         function importData(input) {
             const reader = new FileReader();
             reader.onload = e => {
-                try {
-                    db = JSON.parse(e.target.result);
-                    localStorage.setItem('3T_DB_V2', JSON.stringify(db));
-                    init();
-                    alert('数据导入完成');
-                } catch(e) { alert('文件解析失败'); }
+                const data = JSON.parse(e.target.result);
+                db = data.db || {}; links = data.links || defaultLinks; config = data.config || config;
+                localStorage.setItem('3T_DB_V3', JSON.stringify(db));
+                localStorage.setItem('3T_LINKS', JSON.stringify(links));
+                localStorage.setItem('3T_CFG_V3', JSON.stringify(config));
+                location.reload();
             };
             reader.readAsText(input.files[0]);
         }
