@@ -345,6 +345,19 @@
             const ed = document.getElementById('editor-content');
             const wordGoal = document.getElementById('input-word-goal').value || 2500;
             
+            // 获取当前章节在卷中的索引
+            const chapterIndex = v.chapters.findIndex(x=>x.id===appState.currentChapterId);
+            
+            // 获取前3章的内容摘要（每章取最后800字作为上下文）
+            let prevContext = '';
+            for(let i = Math.max(0, chapterIndex - 3); i < chapterIndex; i++) {
+                const prevChapter = v.chapters[i];
+                if(prevChapter.content && prevChapter.content.length > 0) {
+                    const summary = prevChapter.content.slice(-800);
+                    prevContext += `【${prevChapter.title}片段】${summary}\n\n`;
+                }
+            }
+            
             const sys = `直接续写正文，禁止任何开场白、解释、总结、markdown。
 书名：${b.title}
 类型：${b.genre}
@@ -353,9 +366,15 @@
 风格：${b.systemPrompt}
 本卷大纲：${v.outline}
 本章大纲：${c.outline}
-目标：${wordGoal}字，沉浸式写作，描写细腻。`;
+目标：${wordGoal}字，沉浸式写作，描写细腻。
+
+【重要】保持人物名称、称呼、关系的一致性，不要随意更改前文已出现的人名或绰号。`;
             
-            const usr = `当前正文：\n${ed.innerText.slice(-500)}\n\n（直接续写，不要重复）`;
+            let usr = '';
+            if(prevContext) {
+                usr += `前文回顾：\n${prevContext}\n`;
+            }
+            usr += `当前章节正文：\n${ed.innerText.slice(-500)}\n\n（直接续写，不要重复，保持人物名称一致）`;
 
             const sp = document.createElement('span'); sp.className="typing-cursor text-gray-600"; ed.appendChild(sp);
             streamAI(usr, sys, document.getElementById('model-select-writer').value, (c)=>{
