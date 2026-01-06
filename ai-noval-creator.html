@@ -103,10 +103,11 @@
             </div>
             <div class="flex justify-between items-center mb-2">
                 <span class="text-xs text-gray-500">章节列表 (<span id="chapter-count">0</span>)</span>
-                <div class="flex gap-2">
+                <div class="flex gap-2 flex-wrap">
                     <select id="model-select-chapters" class="text-xs border rounded w-20"></select>
+                    <button onclick="parseChaptersFromOutline()" class="bg-green-50 text-green-600 px-3 py-1 rounded-lg text-xs font-bold hover:bg-green-100 transition"><i class="fas fa-file-import mr-1"></i>解析大纲</button>
                     <button onclick="aiAddNextChapter()" class="bg-orange-50 text-orange-600 px-3 py-1 rounded-lg text-xs font-bold hover:bg-orange-100 transition"><i class="fas fa-plus-circle mr-1"></i>续一章</button>
-                    <button onclick="aiGenerateChapters()" class="bg-orange-100 text-orange-600 px-3 py-1 rounded-lg text-xs font-bold hover:bg-orange-200 transition"><i class="fas fa-magic mr-1"></i>批量填充</button>
+                    <button onclick="aiGenerateChapters()" class="bg-orange-100 text-orange-600 px-3 py-1 rounded-lg text-xs font-bold hover:bg-orange-200 transition"><i class="fas fa-magic mr-1"></i>AI填充</button>
                 </div>
             </div>
             <div id="batch-delete-bar" class="hidden bg-red-50 border border-red-200 rounded-lg p-2 mb-2 flex justify-between items-center">
@@ -485,8 +486,59 @@
 写满${volCount}卷，每卷${chPerVol}章。`; streamAI(p, "直接输出大纲内容，禁止任何开场白、解释、总结。严格按格式输出，不遗漏任何一卷一章。", document.getElementById('model-select-total').value, (c)=>el.value+=c, ()=>saveTotalOutline()); }
         function aiGenerateVolumes() { const o=document.getElementById('total-outline-input').value; if(!o) return alert("请先写大纲"); startJsonStream(`拆解分卷。大纲：${o}\n输出JSON：[{"title":"卷名","outline":"大纲"}]`, document.getElementById('model-select-volumes').value, 'volume'); }
         function aiAddNextVolume() { const currentOutline = document.getElementById('total-outline-input').value; const b = getActiveBook(); if(!currentOutline) return alert("请先填写总大纲"); const prevVolumes = b.volumes.map(v => v.title).join('\n'); const prompt = `续写下一卷。总大纲：${currentOutline}\n已有卷：${prevVolumes}\n输出JSON：[{"title":"卷名","outline":"大纲"}]`; startJsonStream(prompt, document.getElementById('model-select-volumes').value, 'volume'); }
-        function aiAddNextChapter() { const b = getActiveBook(); const v = b.volumes.find(v => v.id === appState.activeVolumeId); const prevChapters = v.chapters.slice(-3).map(c => c.title).join('\n'); const prompt = `规划下一章。书名《${b.title}》卷《${v.title}》\n卷大纲：${v.outline}\n最近章节：${prevChapters}\n输出JSON：[{"title":"章名","outline":"大纲"}]`; startJsonStream(prompt, document.getElementById('model-select-chapters').value, 'chapter'); }
-        function aiGenerateChapters() { const b = getActiveBook(); const v = b.volumes.find(v=>v.id===appState.activeVolumeId); if(!v.outline || v.outline.length < 5) return alert("❌ 本卷大纲为空！"); const targetCount = parseInt(b.chaptersPerVol) || 20; const currentCount = v.chapters.length; const remaining = targetCount - currentCount; if (remaining <= 0) { if(!confirm(`本卷已达标 (${targetCount}章)，是否继续生成？`)) return; } const genCount = remaining > 0 ? remaining : targetCount; const prompt = `规划${genCount}章。卷《${v.title}》大纲：${v.outline}\n已有${currentCount}章，规划第${currentCount+1}到${currentCount+genCount}章，共${genCount}章。\n输出JSON：[{"title":"第X章 章名","outline":"详细大纲（50-100字，包含本章核心冲突、关键情节、人物互动）"}]，必须输出完整${genCount}章，每章大纲要详细具体。`; startJsonStream(prompt, document.getElementById('model-select-chapters').value, 'chapter'); }
+        function parseChaptersFromOutline() {
+            const b = getActiveBook();
+            const v = b.volumes.find(v => v.id === appState.activeVolumeId);
+            if(!v.outline || v.outline.length < 10) return alert("❌ 本卷大纲为空，请先填写大纲！");
+            
+            // 解析大纲中的章节信息，支持多种格式
+            const lines = v.outline.split('\n');
+            const chapters = [];
+            
+            for(const line of lines) {
+                // 格式1: 第X章：章名 - 大纲内容
+                // 格式2: 第X章 章名 - 大纲内容
+                // 格式3: 第X章：章名 — 大纲内容
+                const match = line.match(/第(\d+)章[：:\s]+(.+?)\s*[-–—]\s*(.+)/);
+                if(match) {
+                    chapters.push({
+                        title: `第${match[1]}章：${match[2].trim()}`,
+                        outline: match[3].trim()
+                    });
+                    continue;
+                }
+                // 格式4: 第X章：章名（没有大纲）
+                const match2 = line.match(/第(\d+)章[：:\s]+(.+)/);
+                if(match2 && !match) {
+                    chapters.push({
+                        title: `第${match2[1]}章：${match2[2].trim()}`,
+                        outline: ''
+                    });
+                }
+            }
+            
+            if(chapters.length === 0) {
+                return alert("❌ 未能从大纲中解析出章节！\n\n请确保大纲格式为：\n第X章：章名 - 大纲内容\n\n例如：\n第61章：水塔共和国 - 2001年新世纪，水塔只剩李建国和几个老人。");
+            }
+            
+            if(!confirm(`从大纲中解析出 ${chapters.length} 章，是否导入？\n\n前3章预览：\n${chapters.slice(0,3).map(c=>c.title).join('\n')}`)) return;
+            
+            // 添加到当前卷
+            chapters.forEach((c, i) => {
+                v.chapters.push({
+                    id: Date.now() + i,
+                    title: c.title,
+                    outline: c.outline,
+                    content: ''
+                });
+            });
+            
+            saveState();
+            renderChapterList();
+            alert(`✅ 成功导入 ${chapters.length} 章！`);
+        }
+        function aiAddNextChapter() { const b = getActiveBook(); const v = b.volumes.find(v => v.id === appState.activeVolumeId); const volIndex = b.volumes.findIndex(vol => vol.id === v.id); let prevChaptersTotal = 0; for(let i = 0; i < volIndex; i++) { prevChaptersTotal += b.volumes[i].chapters.length; } const nextChapterNum = prevChaptersTotal + v.chapters.length + 1; const prevChapters = v.chapters.slice(-3).map(c => c.title).join('\n'); const prompt = `规划下一章（第${nextChapterNum}章）。书名《${b.title}》卷《${v.title}》\n卷大纲：${v.outline}\n最近章节：${prevChapters}\n输出JSON：[{"title":"第${nextChapterNum}章 章名","outline":"大纲"}]`; startJsonStream(prompt, document.getElementById('model-select-chapters').value, 'chapter'); }
+        function aiGenerateChapters() { const b = getActiveBook(); const v = b.volumes.find(v=>v.id===appState.activeVolumeId); if(!v.outline || v.outline.length < 5) return alert("❌ 本卷大纲为空！"); const targetCount = parseInt(b.chaptersPerVol) || 20; const currentCount = v.chapters.length; const remaining = targetCount - currentCount; if (remaining <= 0) { if(!confirm(`本卷已达标 (${targetCount}章)，是否继续生成？`)) return; } const genCount = remaining > 0 ? remaining : targetCount; const volIndex = b.volumes.findIndex(vol => vol.id === v.id); let prevChaptersTotal = 0; for(let i = 0; i < volIndex; i++) { prevChaptersTotal += b.volumes[i].chapters.length; } const startChapterNum = prevChaptersTotal + currentCount + 1; const endChapterNum = startChapterNum + genCount - 1; const prompt = `规划${genCount}章。书名《${b.title}》卷《${v.title}》大纲：${v.outline}\n本卷已有${currentCount}章，现在规划第${startChapterNum}章到第${endChapterNum}章，共${genCount}章。\n输出JSON：[{"title":"第${startChapterNum}章 章名","outline":"详细大纲"},{"title":"第${startChapterNum+1}章 章名","outline":"详细大纲"}...]，章节编号必须从${startChapterNum}开始连续递增到${endChapterNum}，每章大纲50-100字包含核心冲突、关键情节、人物互动。`; startJsonStream(prompt, document.getElementById('model-select-chapters').value, 'chapter'); }
     </script>
 </body>
 </html>
