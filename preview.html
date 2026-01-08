@@ -18,18 +18,30 @@
             background:#444;color:#eee;border:none;padding:.4rem .8rem;border-radius:4px;font-size:.9rem;cursor:pointer;
         }
         .edit .btn:hover{background:#555;}
+        .edit .btn.active{background:#0969da;color:#fff;}
         .edit .main{flex:1;display:flex;min-height:0;}
-        .edit .codeWrap{flex:1;display:flex;flex-direction:border-right:1px solid #444;}
+        .edit .codeWrap{flex:1;display:flex;flex-direction:column;border-right:1px solid #444;}
         .edit textarea{
             flex:1;width:100%;height:100%;background:#0d1117;color:#c9d1d9;border:none;
             padding:1rem;resize:none;outline:none;font-family:monospace;font-size:14px;line-height:1.5;
         }
-        .edit .previewWrap{flex:1;display:flex;flex-direction:column;}
+        .edit .previewWrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#333;}
         .edit iframe{
-            flex:1;width:100%;height:100%;background:#fff;border:none;
+            width:100%;height:100%;background:#fff;border:none;
+        }
+        /* 移动端预览模式 */
+        .edit .previewWrap.mobile{
+            background:#1a1a1a;
+        }
+        .edit .previewWrap.mobile iframe{
+            width:375px;
+            height:667px;
+            border:8px solid #222;
+            border-radius:20px;
+            box-shadow:0 10px 40px rgba(0,0,0,0.5);
         }
 
-        /* 预览态 */
+        /* PC端全屏预览态 */
         .previewOnly iframe{
             position:fixed;inset:0;width:100vw;height:100vh;border:none;background:#fff;
         }
@@ -48,6 +60,8 @@
     <div class="toolbar">
         <span>代码 → 预览</span>
         <div>
+            <button class="btn active" id="pcBtn">💻 PC</button>
+            <button class="btn" id="mobileBtn">📱 移动</button>
             <button class="btn" id="runBtn">预览</button>
             <button class="btn" id="clearBtn">清空</button>
             <button class="btn" id="downloadBtn">下载</button>
@@ -58,7 +72,7 @@
         <div class="codeWrap">
             <textarea id="code" placeholder="输入 HTML/CSS/JS 后点「预览」"></textarea>
         </div>
-        <div class="previewWrap">
+        <div class="previewWrap" id="previewWrap">
             <iframe id="preview" src="about:blank"></iframe>
         </div>
     </div>
@@ -69,11 +83,67 @@
         const d=document;
         const $=q=>d.querySelector(q);
         const code=$('#code'), iframe=$('#preview'), tip=$('#tip'), run=$('#runBtn'), clear=$('#clearBtn'), downloadBtn=$('#downloadBtn');
+        const pcBtn=$('#pcBtn'), mobileBtn=$('#mobileBtn'), previewWrap=$('#previewWrap');
+        
+        let viewMode = 'pc'; // 默认PC端
+        const STORAGE_KEY = 'code-preview-cache';
+        let saveTimer = null;
+
+        // 检测是否为移动设备
+        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+                            || window.innerWidth <= 768;
+
+        // 加载缓存的代码
+        function loadCache() {
+            try {
+                const cached = localStorage.getItem(STORAGE_KEY);
+                if (cached) {
+                    code.value = cached;
+                    showTip('已恢复上次的代码');
+                }
+            } catch (e) {
+                console.error('加载缓存失败:', e);
+            }
+        }
+
+        // 保存代码到缓存（防抖）
+        function saveCache() {
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(() => {
+                try {
+                    localStorage.setItem(STORAGE_KEY, code.value);
+                } catch (e) {
+                    console.error('保存缓存失败:', e);
+                }
+            }, 500); // 500ms防抖
+        }
+
+        // 监听代码输入，自动保存
+        code.addEventListener('input', saveCache);
 
         function showTip(txt){
             tip.textContent=txt;
             tip.classList.add('show');
             setTimeout(()=>tip.classList.remove('show'),1500);
+        }
+
+        function switchViewMode(mode) {
+            viewMode = mode;
+            if (mode === 'mobile') {
+                previewWrap.classList.add('mobile');
+                mobileBtn.classList.add('active');
+                pcBtn.classList.remove('active');
+                showTip('切换到移动端预览 (375x667)');
+            } else {
+                previewWrap.classList.remove('mobile');
+                pcBtn.classList.add('active');
+                mobileBtn.classList.remove('active');
+                showTip('切换到PC端预览');
+            }
+            // 如果已经有预览内容，重新渲染
+            if (iframe.contentDocument.body && iframe.contentDocument.body.innerHTML) {
+                runCode();
+            }
         }
 
         function runCode(){
@@ -83,8 +153,17 @@
             doc.open();
             doc.write(html);
             doc.close();
-            d.body.className='previewOnly';
-            showTip('双击屏幕返回编辑');
+            
+            // PC端：全屏预览（隐藏编辑区）
+            // 移动端模式：
+            //   - 如果是移动设备访问：全屏预览（方便测试）
+            //   - 如果是PC设备访问：保持分屏显示
+            if (viewMode === 'pc' || (viewMode === 'mobile' && isMobileDevice)) {
+                d.body.className='previewOnly';
+                showTip('双击屏幕返回编辑');
+            } else {
+                showTip('预览已更新');
+            }
         }
 
         function backToEdit(){
@@ -119,8 +198,18 @@ ${src}
             showTip('已下载 ' + fileName);
         }
 
+        function clearCode() {
+            if(confirm('清空代码？缓存也会被清除')) {
+                code.value='';
+                localStorage.removeItem(STORAGE_KEY);
+                showTip('已清空');
+            }
+        }
+
+        pcBtn.onclick=()=>switchViewMode('pc');
+        mobileBtn.onclick=()=>switchViewMode('mobile');
         run.onclick=runCode;
-        clear.onclick=()=>{ if(confirm('清空？')) code.value=''; };
+        clear.onclick=clearCode;
         downloadBtn.onclick=downloadHTML;
         d.addEventListener('dblclick',backToEdit);
         d.addEventListener('touchend',(e)=>{
@@ -129,7 +218,14 @@ ${src}
             d._last=t;
         });
 
-        window.onload=()=>showTip('输入代码后点「预览」；双击屏幕可返回');
+        // 页面加载时恢复缓存
+        window.onload=()=>{
+            loadCache();
+            if (!code.value) {
+                const deviceTip = isMobileDevice ? '（已检测到移动设备）' : '';
+                showTip('输入代码后点「预览」查看效果' + deviceTip);
+            }
+        };
     </script>
 </body>
 </html>
